@@ -1,8 +1,14 @@
 module Main (main) where
 
-import qualified MyLib (someFunc)
+import GHC.IO.Handle.FD (withFile)
+import GHC.IO.IOMode (IOMode (WriteMode))
+import Image (image, writeImage)
+import System.Environment (getArgs)
 
 main :: IO ()
 main = do
-  putStrLn "Hello, Haskell!"
-  MyLib.someFunc
+  args <- getArgs
+  let output = case args of
+        [filename] -> filename
+        _ -> "output.ppm"
+  withFile output WriteMode $ writeImage image
