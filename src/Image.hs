@@ -1,8 +1,11 @@
 module Image (writeImage, image) where
 
 import Control.Monad (forM_)
-import System.IO (Handle, hPrint, hPutStrLn)
+import System.IO (Handle, hPutStrLn)
 import Text.Printf (hPrintf)
+
+import Color (Color, formatColor)
+import Vec3 (fromTuple)
 
 data Image = Image
   { imageWidth :: Int
@@ -10,12 +13,6 @@ data Image = Image
   , imageData :: [[Color]]
   }
   deriving (Eq)
-
-data Color = Color Int Int Int
-  deriving (Eq)
-
-instance Show Color where
-  show (Color r g b) = show r ++ " " ++ show g ++ " " ++ show b
 
 writeImage ::
   Image -> -- the image
@@ -28,7 +25,7 @@ writeImage img h = do
 
   forM_ (imageData img) $ \r ->
     forM_ r $ \c ->
-      hPrint h c
+      hPutStrLn h $ formatColor c
 
 image :: Image
 image = Image width height colors
@@ -42,12 +39,8 @@ image = Image width height colors
     | j <- [(0 :: Int) .. height - 1]
     ]
 
-  color i j = Color ir ig ib
+  color i j = fromTuple (r, g, b)
    where
     r :: Double = fromIntegral i / fromIntegral (width - 1)
     g :: Double = fromIntegral j / fromIntegral (height - 1)
     b :: Double = 0.0
-
-    ir = floor (255.999 * r)
-    ig = floor (255.999 * g)
-    ib = floor (255.999 * b)
