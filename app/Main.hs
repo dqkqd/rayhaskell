@@ -19,7 +19,7 @@ createImage :: Image
 createImage = Image imageWidth imageHeight colors
  where
   ratio :: Double = 16.0 / 9.0
-  imageWidth :: Int = 800
+  imageWidth :: Int = 400
   imageHeight :: Int = floor (fromIntegral imageWidth / ratio)
 
   focalLength :: Double = 1.0
@@ -30,8 +30,8 @@ createImage = Image imageWidth imageHeight colors
   viewportU = Vec3 viewportWidth 0 0
   viewportV = Vec3 0 (-viewportHeight) 0
 
-  pixelDeltaU = viewportU /^ viewportWidth
-  pixelDeltaV = viewportV /^ viewportHeight
+  pixelDeltaU = viewportU /^ fromIntegral imageWidth
+  pixelDeltaV = viewportV /^ fromIntegral imageHeight
 
   viewportUpperLeft =
     cameraCenter
