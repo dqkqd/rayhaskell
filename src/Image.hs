@@ -5,7 +5,7 @@ import System.IO (Handle, hPutStrLn)
 import Text.Printf (hPrintf)
 
 import Color (Color, formatColor)
-import Vec3 (fromTuple)
+import Vec3 (Vec3 (Vec3))
 
 data Image = Image
   { imageWidth :: Int
@@ -39,8 +39,8 @@ image = Image width height colors
     | j <- [(0 :: Int) .. height - 1]
     ]
 
-  color i j = fromTuple (r, g, b)
+  color i j = Vec3 r g b
    where
-    r :: Double = fromIntegral i / fromIntegral (width - 1)
-    g :: Double = fromIntegral j / fromIntegral (height - 1)
-    b :: Double = 0.0
+    r = fromIntegral i / fromIntegral (width - 1)
+    g = fromIntegral j / fromIntegral (height - 1)
+    b = 0.0

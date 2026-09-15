@@ -1,11 +1,10 @@
 module Color (Color, formatColor) where
 
-import Vec3 (Vec3, toTuple)
+import Vec3 (Vec3 (Vec3), (^*))
 
-type Color = Vec3
+type Color = Vec3 Double
 
 formatColor :: Color -> String
-formatColor c = x ++ " " ++ y ++ " " ++ z
+formatColor c = show x ++ " " ++ show y ++ " " ++ show z
  where
-  scaled = show . (floor :: Double -> Int) <$> c * 255.999
-  (x, y, z) = toTuple scaled
+  (Vec3 x y z) :: (Vec3 Int) = floor <$> (255.999 ^* c)
