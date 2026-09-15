@@ -57,6 +57,7 @@ library
       Image
       Vec3
       Color
+      Ray
 
     -- Modules included in this library but not exported.
     -- other-modules:
