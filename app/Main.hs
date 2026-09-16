@@ -7,6 +7,7 @@ import Color (Color)
 import Image (Image (Image), writeImage)
 import Point (Point (P), (.+^), (.-.), (.-^))
 import Ray (Ray (Ray), rayColor)
+import Sphere (Sphere (Sphere))
 import Vec3 (Vec3 (V3))
 
 main :: IO ()
@@ -50,8 +51,10 @@ createImage = Image imageWidth imageHeight colors
     | j <- [(0 :: Int) .. imageHeight - 1]
     ]
 
+  sphere = Sphere (P (V3 0 0 (-1))) 0.5
+
   color :: Int -> Int -> Color
-  color i j = rayColor ray
+  color i j = rayColor ray sphere
    where
     pixelCenter =
       pixel00Location
