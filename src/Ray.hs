@@ -34,9 +34,9 @@ data Sphere
 hitSphere :: Sphere -> Ray -> Maybe Point
 hitSphere (Sphere center radius) ray@(Ray origin direction) = do
   let a = direction `dot` direction
-  let b = (-2) * (direction `dot` (center .-. origin))
+  let b = direction `dot` (center .-. origin)
   let c = (center .-. origin) `dot` (center .-. origin) - radius * radius
-  let delta = b * b - 4 * a * c
+  let delta = b * b - a * c
   guard (delta >= 0)
-  let root = (-b - sqrt delta) / (2 * a)
+  let root = (b - sqrt delta) / a
   return (rayAt ray root)
