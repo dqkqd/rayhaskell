@@ -1,17 +1,16 @@
 module Image (Image (Image), writeImage) where
 
 import Control.Monad (forM_)
-import System.IO (Handle, hPutStrLn)
+import System.IO (Handle, hPrint, hPutStrLn)
 import Text.Printf (hPrintf)
 
-import Color (Color, formatColor)
+import Color (Color)
 
 data Image = Image
   { imageWidth :: Int
   , imageHeight :: Int
   , imageData :: [[Color]]
   }
-  deriving (Eq)
 
 writeImage ::
   Image -> -- the image
@@ -24,4 +23,4 @@ writeImage img h = do
 
   forM_ (imageData img) $ \r ->
     forM_ r $ \c ->
-      hPutStrLn h $ formatColor c
+      hPrint h c

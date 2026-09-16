@@ -3,9 +3,11 @@ module Main (main) where
 import System.Environment (getArgs)
 import System.IO (IOMode (WriteMode), withFile)
 
+import Color (Color)
 import Image (Image (Image), writeImage)
+import Point (Point (P), (.+^), (.-.), (.-^))
 import Ray (Ray (Ray), rayColor)
-import Vec3 (Vec3 (Vec3), (*^), (/^))
+import Vec3 (Vec3 (V3))
 
 main :: IO ()
 main = do
@@ -25,21 +27,21 @@ createImage = Image imageWidth imageHeight colors
   focalLength :: Double = 1.0
   viewportHeight :: Double = 2.0
   viewportWidth = viewportHeight * (fromIntegral imageWidth / fromIntegral imageHeight)
-  cameraCenter = Vec3 0.0 0.0 0.0
+  cameraCenter = P (V3 0 0 0)
 
-  viewportU = Vec3 viewportWidth 0 0
-  viewportV = Vec3 0 (-viewportHeight) 0
+  viewportU = V3 viewportWidth 0 0
+  viewportV = V3 0 (-viewportHeight) 0
 
-  pixelDeltaU = viewportU /^ fromIntegral imageWidth
-  pixelDeltaV = viewportV /^ fromIntegral imageHeight
+  pixelDeltaU = viewportU / fromIntegral imageWidth
+  pixelDeltaV = viewportV / fromIntegral imageHeight
 
   viewportUpperLeft =
     cameraCenter
-      - Vec3 0 0 focalLength
-      - viewportU /^ 2
-      - viewportV /^ 2
+      .-^ V3 0 0 focalLength
+      .-^ (viewportU / 2)
+      .-^ (viewportV / 2)
 
-  pixel00Location = viewportUpperLeft + 0.5 * (pixelDeltaU + pixelDeltaV)
+  pixel00Location = viewportUpperLeft .+^ (0.5 * pixelDeltaU) .+^ (0.5 * pixelDeltaV)
 
   colors =
     [ [ color i j
@@ -48,12 +50,12 @@ createImage = Image imageWidth imageHeight colors
     | j <- [(0 :: Int) .. imageHeight - 1]
     ]
 
-  color :: Int -> Int -> Vec3 Double
+  color :: Int -> Int -> Color
   color i j = rayColor ray
    where
     pixelCenter =
       pixel00Location
-        + (pixelDeltaU *^ fromIntegral i)
-        + (pixelDeltaV *^ fromIntegral j)
-    rayDirection = pixelCenter - cameraCenter
+        .+^ (pixelDeltaU * fromIntegral i)
+        .+^ (pixelDeltaV * fromIntegral j)
+    rayDirection = pixelCenter .-. cameraCenter
     ray = Ray cameraCenter rayDirection

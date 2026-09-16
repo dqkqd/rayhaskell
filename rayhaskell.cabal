@@ -58,6 +58,7 @@ library
       Vec3
       Color
       Ray
+      Point
 
     -- Modules included in this library but not exported.
     -- other-modules:
