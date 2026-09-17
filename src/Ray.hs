@@ -1,4 +1,4 @@
-module Ray (Ray (Ray), rayColor, rayAt, Hitable, hit, normalVec) where
+module Ray (Ray (Ray), HitRecord (HitRecord), rayColor, rayAt, Hittable, hit) where
 
 import Color (Color (C))
 import Point (Point, (.+^))
@@ -9,16 +9,20 @@ data Ray
       Point -- origin
       (Vec3 Double) -- direction
 
-class Hitable a where
-  hit :: a -> Ray -> Maybe Point
-  normalVec :: a -> Point -> Vec3 Double
+data HitRecord
+  = HitRecord
+      Point -- origin
+      (Vec3 Double) -- normal vector
+
+class Hittable a where
+  hit :: a -> Ray -> Maybe HitRecord
 
 rayAt :: Ray -> Double -> Point
 rayAt (Ray origin direction) t = origin .+^ (direction ^* t)
 
-rayColor :: (Hitable o) => Ray -> o -> Color
+rayColor :: (Hittable o) => Ray -> o -> Color
 rayColor ray@(Ray _ direction) object = case hit object ray of
-  Just point -> C ((normalVec object point + 1) * 0.5)
+  Just (HitRecord _ normalVec) -> C ((normalVec + 1) * 0.5)
   Nothing -> C (V3 1 1 1 ^* (1 - a) + V3 0.5 0.7 1.0 ^* a)
  where
   V3 _ y _ = unit direction
