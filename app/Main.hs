@@ -22,7 +22,7 @@ createImage :: Image
 createImage = Image imageWidth imageHeight colors
  where
   ratio :: Double = 16.0 / 9.0
-  imageWidth :: Int = 400
+  imageWidth :: Int = 800
   imageHeight :: Int = floor (fromIntegral imageWidth / ratio)
 
   focalLength :: Double = 1.0
