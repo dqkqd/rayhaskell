@@ -60,6 +60,7 @@ library
       Ray
       Point
       Sphere
+      Hit
 
     -- Modules included in this library but not exported.
     -- other-modules:

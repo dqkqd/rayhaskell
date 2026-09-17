@@ -1,8 +1,9 @@
 module Sphere (Sphere (Sphere)) where
 
 import Control.Monad (guard)
+import Hit (HitRecord (HitRecord), Hittable (hit))
 import Point (Point, (.-.))
-import Ray (HitRecord (HitRecord), Hittable, Ray (Ray), hit, rayAt)
+import Ray (Ray (Ray), rayAt)
 import Vec3 (dot, unit)
 
 data Sphere

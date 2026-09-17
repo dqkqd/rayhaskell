@@ -4,9 +4,10 @@ import System.Environment (getArgs)
 import System.IO (IOMode (WriteMode), withFile)
 
 import Color (Color)
+import Hit (hitColor)
 import Image (Image (Image), writeImage)
 import Point (Point (P), (.+^), (.-.), (.-^))
-import Ray (Ray (Ray), rayColor)
+import Ray (Ray (Ray))
 import Sphere (Sphere (Sphere))
 import Vec3 (Vec3 (V3))
 
@@ -54,7 +55,7 @@ createImage = Image imageWidth imageHeight colors
   sphere = Sphere (P (V3 0 0 (-1))) 0.5
 
   color :: Int -> Int -> Color
-  color i j = rayColor ray sphere
+  color i j = hitColor ray sphere
    where
     pixelCenter =
       pixel00Location
