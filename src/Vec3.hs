@@ -11,7 +11,7 @@ module Vec3 (
 ) where
 
 -- | Generic vector
-data Vec3 a = V3 a a a deriving (Functor, Show, Eq)
+data Vec3 a = V3 a a a deriving (Functor, Foldable, Eq, Show)
 
 mkVec3 :: (Vec3 b -> a) -> b -> b -> b -> a
 mkVec3 wrap x y z = wrap (V3 x y z)
@@ -33,35 +33,33 @@ instance (Fractional a) => Fractional (Vec3 a) where
   fromRational = pure . fromRational
   (/) = liftA2 (/)
 
--- | Mutiply a scalar with Vec3
+-- | Mutiply a scalar
 --
 -- >>> 5 *^ (V3 1 2 3)
 -- V3 5 10 15
-(*^) :: (Num a) => a -> Vec3 a -> Vec3 a
+(*^) :: (Functor f, Num a) => a -> f a -> f a
 (*^) s = fmap (* s)
 
--- | Mutiply a scalar with Vec3
+-- | Mutiply a scalar
 --
 -- >>> (V3 1 2 3) ^* 5
 -- V3 5 10 15
-(^*) :: (Num a) => Vec3 a -> a -> Vec3 a
+(^*) :: (Functor f, Num a) => f a -> a -> f a
 (^*) = flip (*^)
 
--- | Mutiply a Vec3 by scalar
+-- | Divide by scalar
 --
 -- >>> (V3 5 10 15) ^/ 5
 -- V3 1.0 2.0 3.0
-(^/) :: (Fractional a) => Vec3 a -> a -> Vec3 a
+(^/) :: (Functor f, Fractional a) => f a -> a -> f a
 (^/) v s = fmap (/ s) v
 
--- | Dot product between two Vec3
+-- | Dot product
 --
 -- >>> (V3 1 2 3) `dot` (V3 4 5 6)
 -- 32
-dot :: (Num a) => Vec3 a -> Vec3 a -> a
-dot v1 v2 = x + y + z
- where
-  V3 x y z = v1 * v2
+dot :: (Applicative f, Foldable f, Num a) => f a -> f a -> a
+dot v1 v2 = sum $ (*) <$> v1 <*> v2
 
 -- | Cross product between two Vec3
 --
