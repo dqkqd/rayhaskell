@@ -1,4 +1,9 @@
-module Interval (Interval (Interval), defaultInterval, inInterval) where
+module Interval (
+  Interval (Interval),
+  defaultInterval,
+  intervalContains,
+  intervalSurrounds,
+) where
 
 data Interval
   = Interval
@@ -8,15 +13,36 @@ data Interval
 defaultInterval :: Interval
 defaultInterval = Interval 0 (1 / 0)
 
--- | Whether an interval contains value
+-- | Whether an interval contains a value
+-- Return true if x in [a, b]
 --
--- >>> inInterval (Interval 1 10) 5
+-- >>> intervalContains (Interval 1 10) 5
 -- True
 --
--- >>> inInterval (Interval 1 10) 12
+-- >>> intervalContains (Interval 1 10) 1
+-- True
+--
+-- >>> intervalContains (Interval 1 10) 10
+-- True
+--
+-- >>> intervalContains (Interval 1 10) 12
 -- False
 --
--- >>> inInterval (Interval 1 10) 0
+-- >>> intervalContains (Interval 1 10) 0
 -- False
-inInterval :: Interval -> Double -> Bool
-inInterval (Interval minV maxV) value = value >= minV && value <= maxV
+intervalContains :: Interval -> Double -> Bool
+intervalContains (Interval minV maxV) value = minV <= value && value <= maxV
+
+-- | Where an interval surrounds a value
+-- Return true if x in (a, b)
+--
+-- >>> intervalSurrounds (Interval 1 10) 5
+-- True
+--
+-- >>> intervalSurrounds (Interval 1 10) 1
+-- False
+--
+-- >>> intervalSurrounds (Interval 1 10) 10
+-- False
+intervalSurrounds :: Interval -> Double -> Bool
+intervalSurrounds (Interval minV maxV) value = minV < value && value < maxV

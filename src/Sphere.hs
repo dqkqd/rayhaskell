@@ -4,7 +4,7 @@ import Control.Monad (guard)
 import Data.List (find)
 
 import Hit (Hittable (hitDistance, outwardNormalVec))
-import Interval (inInterval)
+import Interval (intervalSurrounds)
 import Point (Point, (.-.))
 import Ray (Ray (Ray), RayDistance (RayDistance))
 import Vec3 (dot, unit)
@@ -25,7 +25,7 @@ instance Hittable Sphere where
 
     guard (delta >= 0)
     let sqrtD = sqrt delta
-    root <- find (inInterval interval) [(b - sqrtD) / a, (b + sqrtD) / a]
+    root <- find (intervalSurrounds interval) [(b - sqrtD) / a, (b + sqrtD) / a]
     return (RayDistance root)
 
   outwardNormalVec (Sphere center _) p = unit (p .-. center)
