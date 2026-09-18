@@ -1,6 +1,5 @@
 module Hit (
   Hittable (outwardNormalVec, hitDistance),
-  mkHitRecord,
   Interval,
   defaultInterval,
   hitColor,
@@ -19,23 +18,6 @@ data HitRecord
       -- TODO: implement of normal vector
       (Vec3 Double) -- normal vector
   deriving (Show, Eq)
-
-mkHitRecord ::
-  (Hittable o) =>
-  o -> -- a hitable object
-  Ray -> -- the ray hitting the object
-  Point -> -- the hit point
-  HitRecord
-mkHitRecord object (Ray _ rayDirection) hitPoint =
-  if (outwardNormal `dot` rayDirection) > 0.0
-    then
-      -- ray is inside
-      HitRecord hitPoint (-outwardNormal)
-    else
-      -- ray is outside
-      HitRecord hitPoint outwardNormal
- where
-  outwardNormal = outwardNormalVec object hitPoint
 
 data Interval
   = Interval
@@ -68,10 +50,15 @@ class Hittable a where
 
   -- | Calculate the hit record
   hit :: a -> Ray -> Interval -> Maybe HitRecord
-  hit object ray interval = do
+  hit object ray@(Ray _ direction) interval = do
     rayDistance <- hitDistance object ray interval
     let hitPoint = rayAt ray rayDistance
-    return (mkHitRecord object ray hitPoint)
+        outwardNormal = outwardNormalVec object hitPoint
+        normalVec =
+          if (outwardNormal `dot` direction) > 0.0
+            then -outwardNormal -- ray is inside
+            else outwardNormal -- ray is outside
+    return (HitRecord hitPoint normalVec)
 
 hitColor :: (Hittable o) => o -> Ray -> Interval -> Color
 hitColor object ray@(Ray _ direction) interval = case hit object ray interval of
