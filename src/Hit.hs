@@ -1,14 +1,12 @@
 module Hit (
   Hittable (outwardNormalVec, hitDistance),
-  HitRecord,
+  HitRecord (hitRecordNormalVec, hitRecordOrigin),
   hitMany,
-  hitRecordColor,
 ) where
 
 import Data.Maybe (mapMaybe)
 import Safe (minimumMay)
 
-import Color (Color (C))
 import Interval (Interval)
 import Point (Point)
 import Ray (Ray (Ray), RayDistance, rayAt)
@@ -17,9 +15,10 @@ import Vec3 (Vec3, dot)
 -- | A hit data structure, contains an origin and a normal vector pointing outward
 data HitRecord
   = HitRecord
-      Point -- origin
-      RayDistance -- distance with the ray
-      (Vec3 Double) -- normal vector
+  { hitRecordOrigin :: Point
+  , hitRecordDistance :: RayDistance
+  , hitRecordNormalVec :: Vec3 Double -- normal vector
+  }
   deriving (Show, Eq)
 
 instance Ord HitRecord where
@@ -50,7 +49,3 @@ hitMany :: (Hittable o) => [o] -> Ray -> Interval -> Maybe HitRecord
 hitMany objects ray interval = minimumMay hitRecords
  where
   hitRecords = mapMaybe (\object -> hitSingle object ray interval) objects
-
--- | Default record for a hit record
-hitRecordColor :: HitRecord -> Color
-hitRecordColor (HitRecord _ _ normalVec) = C ((normalVec + 1) * 0.5)

@@ -14,18 +14,20 @@ import System.ProgressBar
 import Color (Color (C))
 import Control.Monad (forM_, replicateM)
 import Control.Monad.Random (
-  MonadRandom (getRandom),
   Rand,
   StdGen,
   evalRandIO,
  )
-import Hit (hitMany, hitRecordColor)
-import Interval (defaultInterval)
+import Hit (
+  HitRecord (hitRecordNormalVec, hitRecordOrigin),
+  hitMany,
+ )
+import Interval (Interval (Interval), defaultInterval)
 import Point (Point, point, (.+^), (.-.), (.-^))
 import Ray (Ray (Ray))
 import System.IO (Handle, hPrint, hPutStrLn)
 import Text.Printf (hPrintf)
-import Vec3 (Vec3 (V3), unit, (^*))
+import Vec3 (Vec3 (V3), randomOnHemisphere, randomVecR, unit, (^*))
 import World (WorldObject)
 
 -- | camera configuration
@@ -104,17 +106,17 @@ render
     forM_ [0 .. imageHeight - 1] $ \j -> do
       incProgress pb 1
       forM_ [0 .. imageWidth - 1] $ \i -> do
-        rays <- evalRandIO (replicateM samplesPerPixel (sampleRay camera i j))
-        let
-          color =
-            sum
-              (map (rayColor world) rays)
-              / fromIntegral samplesPerPixel
-        hPrint h color
+        colors <-
+          evalRandIO $
+            replicateM samplesPerPixel $ do
+              ray <- sampleRay camera i j
+              rayColor world ray
+        let averageColor = sum colors / fromIntegral (length colors)
+        hPrint h averageColor
 
 sampleRay :: Camera -> Int -> Int -> Rand StdGen Ray
 sampleRay camera i j = do
-  V3 x y _ <- sampleSquare
+  V3 x y _ <- randomVecR (Interval (-0.5) 0.5)
   let
     pixelSample =
       pixel00Location camera
@@ -123,17 +125,20 @@ sampleRay camera i j = do
     rayDirection = pixelSample .-. center camera
   return (Ray (center camera) rayDirection)
 
-sampleSquare :: Rand StdGen (Vec3 Double)
-sampleSquare = do
-  x <- getRandom
-  y <- getRandom
-  return (V3 (x - 0.5) (y - 0.5) 0)
-
 -- | Render color from a ray hitting the world
-rayColor :: [WorldObject] -> Ray -> Color
-rayColor objects ray = maybe (backgroundColor ray) hitRecordColor record
- where
-  record = hitMany objects ray defaultInterval
+rayColor :: [WorldObject] -> Ray -> Rand StdGen Color
+rayColor objects ray = do
+  let
+    record = hitMany objects ray defaultInterval
+    color = case record of
+      Just h -> do
+        nextDirection <- randomOnHemisphere (hitRecordNormalVec h)
+        let nextRay = Ray (hitRecordOrigin h) nextDirection
+        nextColor <- rayColor objects nextRay
+        return (nextColor * 0.5)
+      Nothing -> return (backgroundColor ray)
+
+  color
 
 -- | Background default color
 backgroundColor :: Ray -> Color

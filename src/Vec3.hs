@@ -8,7 +8,22 @@ module Vec3 (
   dot,
   cross,
   unit,
+  randomVec,
+  randomVecR,
+  randomOnHemisphere,
 ) where
+
+import Control.Monad.Random (
+  MonadRandom (getRandom, getRandomR, getRandomRs),
+  Rand,
+  Random (random),
+  StdGen,
+  forever,
+  replicateM,
+ )
+import Data.Foldable (find)
+import Data.Maybe (fromJust)
+import Interval (Interval (Interval))
 
 -- | Generic vector
 data Vec3 a = V3 a a a deriving (Functor, Foldable, Eq, Show)
@@ -85,3 +100,36 @@ lengthSquare v = v `dot` v
 -- V3 0.3333333333333333 0.6666666666666666 0.6666666666666666
 unit :: (Floating a) => Vec3 a -> Vec3 a
 unit v = v ^/ (sqrt . lengthSquare) v
+
+-- | Random a vector in [0; 1)
+randomVec :: Rand StdGen (Vec3 Double)
+randomVec = V3 <$> getRandom <*> getRandom <*> getRandom
+
+-- | Random a vector in an Interval
+randomVecR :: Interval -> Rand StdGen (Vec3 Double)
+randomVecR (Interval minV maxV) = V3 <$> go <*> go <*> go
+ where
+  go = getRandomR (minV, maxV)
+
+-- | Random a unit vector in a unit square (-1, 1)
+-- We have to loop and reject everything outside of sphere,
+-- to avoid corner bias
+randomUnitVec :: Rand StdGen (Vec3 Double)
+randomUnitVec = do
+  let loop = do
+        v <- randomVecR (Interval (-1) 1)
+        let
+          lenS = lengthSquare v
+        if lenS <= 1
+          then return (v ^/ sqrt lenS)
+          else loop
+  loop
+
+-- | Random vector on hemisphere
+-- The result vector must be in the same direction with the normal vector
+randomOnHemisphere :: Vec3 Double -> Rand StdGen (Vec3 Double)
+randomOnHemisphere normal = do
+  unitVec <- randomUnitVec
+  if unitVec `dot` normal > 0
+    then return unitVec
+    else return (-unitVec)
