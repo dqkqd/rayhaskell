@@ -3,6 +3,7 @@ module Interval (
   defaultInterval,
   intervalContains,
   intervalSurrounds,
+  intervalClamp,
 ) where
 
 data Interval
@@ -46,3 +47,17 @@ intervalContains (Interval minV maxV) value = minV <= value && value <= maxV
 -- False
 intervalSurrounds :: Interval -> Double -> Bool
 intervalSurrounds (Interval minV maxV) value = minV < value && value < maxV
+
+-- | Where an interval surrounds a value
+-- Return true if x in (a, b)
+--
+-- >>> intervalClamp (Interval 1 10) 5
+-- 5.0
+--
+-- >>> intervalClamp (Interval 1 10) 0
+-- 1.0
+--
+-- >>> intervalClamp (Interval 1 10) 11
+-- 10.0
+intervalClamp :: Interval -> Double -> Double
+intervalClamp (Interval minV maxV) = min maxV . max minV

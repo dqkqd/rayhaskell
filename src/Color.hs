@@ -1,5 +1,6 @@
 module Color (Color (C), color) where
 
+import Interval (Interval (Interval), intervalClamp)
 import Vec3 (Vec3 (V3), mkVec3)
 
 -- | The internal color, in space [0 - 1]
@@ -16,4 +17,5 @@ color = mkVec3 C
 instance Show Color where
   show (C c) = show x ++ " " ++ show y ++ " " ++ show z
    where
-    (V3 x y z) :: (Vec3 Int) = floor <$> (255.999 * c)
+    interval = Interval 0.0 0.999
+    (V3 x y z) :: (Vec3 Int) = floor . (* 256) . intervalClamp interval <$> c
