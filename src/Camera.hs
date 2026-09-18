@@ -4,12 +4,16 @@ module Camera (
   createCamera,
 ) where
 
+import System.ProgressBar
+
 import Color (Color (C))
+import Control.Monad (forM_)
 import Hit (hitMany, hitRecordColor)
-import Image (Image (Image))
 import Interval (defaultInterval)
 import Point (Point, point, (.+^), (.-.), (.-^))
 import Ray (Ray (Ray))
+import System.IO (Handle, hPrint, hPutStrLn)
+import Text.Printf (hPrintf)
 import Vec3 (Vec3 (V3), unit, (^*))
 import World (WorldObject)
 
@@ -65,7 +69,7 @@ createCamera config =
   pixel00Location = viewportUpperLeft .+^ (0.5 * pixelDeltaU) .+^ (0.5 * pixelDeltaV)
 
 -- | Render list of WorldObject into Image
-render :: Camera -> [WorldObject] -> Image
+render :: Camera -> [WorldObject] -> Handle -> IO ()
 render
   ( Camera
       { imageWidth = imageWidth
@@ -76,24 +80,26 @@ render
       , pixelDeltaV = pixelDeltaV
       }
     )
-  world = Image imageWidth imageHeight colors
-   where
-    colors =
-      [ [ color i j
-        | i <- [(0 :: Int) .. imageWidth - 1]
-        ]
-      | j <- [(0 :: Int) .. imageHeight - 1]
-      ]
+  world
+  h = do
+    hPutStrLn h "P3"
+    hPrintf h "%d %d\n" imageWidth imageHeight
+    hPutStrLn h "255"
 
-    color :: Int -> Int -> Color
-    color i j = rayColor ray world
-     where
-      pixelCenter =
-        pixel00Location
-          .+^ (pixelDeltaU * fromIntegral i)
-          .+^ (pixelDeltaV * fromIntegral j)
-      rayDirection = pixelCenter .-. center
-      ray = Ray center rayDirection
+    pb <- newProgressBar defStyle 10 (Progress 0 imageHeight ())
+    forM_ [0 .. imageHeight - 1] $ \j -> do
+      incProgress pb 1
+      forM_ [0 .. imageWidth - 1] $ \i -> do
+        let
+          pixelCenter =
+            pixel00Location
+              .+^ (pixelDeltaU * fromIntegral i)
+              .+^ (pixelDeltaV * fromIntegral j)
+          rayDirection = pixelCenter .-. center
+          ray = Ray center rayDirection
+          color = rayColor ray world
+
+        hPrint h color
 
 -- | Render color from a ray hitting the world
 rayColor :: Ray -> [WorldObject] -> Color

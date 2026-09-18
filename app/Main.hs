@@ -8,7 +8,6 @@ import Camera (
   createCamera,
   render,
  )
-import Image (writeImage)
 import Point (point)
 import Sphere (Sphere (Sphere))
 import World (WorldObject (S))
@@ -30,6 +29,5 @@ main = do
         [ S (Sphere (point 0 0 (-1)) 0.5)
         , S (Sphere (point 0 (-100.5) (-1)) 100)
         ]
-      image = render camera world
 
-  withFile output WriteMode $ writeImage image
+  withFile output WriteMode $ render camera world
