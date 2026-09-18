@@ -54,6 +54,7 @@ library
 
     -- Modules exported by the library.
     exposed-modules:
+      Camera
       Color
       Hit
       Image
