@@ -33,16 +33,16 @@ instance (Fractional a) => Fractional (Vec3 a) where
   fromRational = pure . fromRational
   (/) = liftA2 (/)
 
--- | Mutiply a Vec3 with scalar
+-- | Mutiply a scalar with Vec3
 --
--- >>> (V3 1 2 3) ^* 5
+-- >>> 5 *^ (V3 1 2 3)
 -- V3 5 10 15
 (*^) :: (Num a) => a -> Vec3 a -> Vec3 a
 (*^) s = fmap (* s)
 
 -- | Mutiply a scalar with Vec3
 --
--- >>> 5 *^ (V3 1 2 3)
+-- >>> (V3 1 2 3) *^ 5
 -- V3 5 10 15
 (^*) :: (Num a) => Vec3 a -> a -> Vec3 a
 (^*) = flip (*^)

@@ -1,5 +1,5 @@
 module Hit (
-  Hittable (hit, outwardNormalVec),
+  Hittable (outwardNormalVec, hitDistance),
   mkHitRecord,
   Interval,
   defaultInterval,
@@ -9,7 +9,7 @@ module Hit (
 
 import Color (Color (C))
 import Point (Point)
-import Ray (Ray (Ray))
+import Ray (Ray (Ray), RayDistance, rayAt)
 import Vec3 (Vec3 (V3), dot, unit, (^*))
 
 -- | A hit data structure, contains an origin and a normal vector pointing outward
@@ -60,11 +60,18 @@ inInterval (Interval minV maxV) value = value >= minV && value <= maxV
 
 -- | Hittable interface, whether an object can be _hit_ by a ray.
 class Hittable a where
-  -- | Calculate the hit record
-  hit :: a -> Ray -> Interval -> Maybe HitRecord
+  -- | Calculate the hit distance from a ray
+  hitDistance :: a -> Ray -> Interval -> Maybe RayDistance
 
   -- | Calculate the outward normal vector at a given point
   outwardNormalVec :: a -> Point -> Vec3 Double
+
+  -- | Calculate the hit record
+  hit :: a -> Ray -> Interval -> Maybe HitRecord
+  hit object ray interval = do
+    rayDistance <- hitDistance object ray interval
+    let hitPoint = rayAt ray rayDistance
+    return (mkHitRecord object ray hitPoint)
 
 hitColor :: (Hittable o) => o -> Ray -> Interval -> Color
 hitColor object ray@(Ray _ direction) interval = case hit object ray interval of

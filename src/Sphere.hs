@@ -2,9 +2,12 @@ module Sphere (Sphere (Sphere)) where
 
 import Control.Monad (guard)
 import Data.List (find)
-import Hit (Hittable (hit, outwardNormalVec), inInterval, mkHitRecord)
+import Hit (
+  Hittable (hitDistance, outwardNormalVec),
+  inInterval,
+ )
 import Point (Point, (.-.))
-import Ray (Ray (Ray), rayAt)
+import Ray (Ray (Ray), RayDistance (RayDistance))
 import Vec3 (dot, unit)
 
 data Sphere
@@ -15,7 +18,7 @@ data Sphere
 
 -- | A Sphere is a Hittable object
 instance Hittable Sphere where
-  hit sphere@(Sphere sCenter sRadius) ray@(Ray rOrigin rDirection) interval = do
+  hitDistance (Sphere sCenter sRadius) (Ray rOrigin rDirection) interval = do
     let a = rDirection `dot` rDirection
         b = rDirection `dot` (sCenter .-. rOrigin)
         c = (sCenter .-. rOrigin) `dot` (sCenter .-. rOrigin) - sRadius * sRadius
@@ -24,8 +27,6 @@ instance Hittable Sphere where
     guard (delta >= 0)
     let sqrtD = sqrt delta
     root <- find (inInterval interval) [(b - sqrtD) / a, (b + sqrtD) / a]
-
-    let hitPoint = rayAt ray root
-    return (mkHitRecord sphere ray hitPoint)
+    return (RayDistance root)
 
   outwardNormalVec (Sphere center _) p = unit (p .-. center)
