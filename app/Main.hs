@@ -11,6 +11,7 @@ import Point (point, (.+^), (.-.), (.-^))
 import Ray (Ray (Ray))
 import Sphere (Sphere (Sphere))
 import Vec3 (Vec3 (V3))
+import World (WorldObject (S))
 
 main :: IO ()
 main = do
@@ -47,8 +48,8 @@ createImage = Image imageWidth imageHeight colors
   pixel00Location = viewportUpperLeft .+^ (0.5 * pixelDeltaU) .+^ (0.5 * pixelDeltaV)
 
   world =
-    [ Sphere (point 0 0 (-1)) 0.5
-    , Sphere (point 0 (-100.5) (-1)) 100
+    [ S (Sphere (point 0 0 (-1)) 0.5)
+    , S (Sphere (point 0 (-100.5) (-1)) 100)
     ]
 
   colors =

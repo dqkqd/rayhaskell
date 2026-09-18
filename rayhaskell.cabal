@@ -62,6 +62,7 @@ library
       Ray
       Sphere
       Vec3
+      World
 
     -- Modules included in this library but not exported.
     -- other-modules:

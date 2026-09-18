@@ -1,5 +1,6 @@
 module Hit (
   Hittable (outwardNormalVec, hitDistance),
+  HitRecord,
   hitMany,
   hitColor,
 ) where
@@ -18,7 +19,6 @@ data HitRecord
   = HitRecord
       Point -- origin
       RayDistance -- distance with the ray
-      -- TODO: implement of normal vector
       (Vec3 Double) -- normal vector
   deriving (Show, Eq)
 
@@ -33,23 +33,28 @@ class Hittable a where
   -- | Calculate the outward normal vector at a given point
   outwardNormalVec :: a -> Point -> Vec3 Double
 
-  -- | Calculate the hit record
-  hit :: a -> Ray -> Interval -> Maybe HitRecord
-  hit object ray@(Ray _ direction) interval = do
-    rayDistance <- hitDistance object ray interval
-    let hitPoint = rayAt ray rayDistance
-        outwardNormal = outwardNormalVec object hitPoint
-        normalVec =
-          if (outwardNormal `dot` direction) > 0.0
-            then -outwardNormal -- ray is inside
-            else outwardNormal -- ray is outside
-    return (HitRecord hitPoint rayDistance normalVec)
+-- | Calculate the hit record
+hitSingle :: (Hittable a) => a -> Ray -> Interval -> Maybe HitRecord
+hitSingle object ray@(Ray _ direction) interval = do
+  rayDistance <- hitDistance object ray interval
+  let hitPoint = rayAt ray rayDistance
+      outwardNormal = outwardNormalVec object hitPoint
+      normalVec =
+        if (outwardNormal `dot` direction) > 0.0
+          then -outwardNormal -- ray is inside
+          else outwardNormal -- ray is outside
+  return (HitRecord hitPoint rayDistance normalVec)
 
 -- | Given many objects, we want to find the closest hit record
 hitMany :: (Hittable o) => [o] -> Ray -> Interval -> Maybe HitRecord
 hitMany objects ray interval = minimumMay hitRecords
  where
-  hitRecords = mapMaybe (\object -> hit object ray interval) objects
+  hitRecords = mapMaybe (\object -> hitSingle object ray interval) objects
+
+-- | Color from a hit record
+hitColor :: Ray -> Maybe HitRecord -> Color
+hitColor ray Nothing = defaultColor ray
+hitColor _ (Just (HitRecord _ _ normalVec)) = C ((normalVec + 1) * 0.5)
 
 -- | Background default color
 defaultColor :: Ray -> Color
@@ -57,8 +62,3 @@ defaultColor (Ray _ direction) = C (V3 1 1 1 ^* (1 - a) + V3 0.5 0.7 1.0 ^* a)
  where
   V3 _ y _ = unit direction
   a = 0.5 * (y + 1.0)
-
--- | Color from a hit record
-hitColor :: Ray -> Maybe HitRecord -> Color
-hitColor ray Nothing = defaultColor ray
-hitColor _ (Just (HitRecord _ _ normalVec)) = C ((normalVec + 1) * 0.5)
