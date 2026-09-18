@@ -4,7 +4,7 @@ import System.Environment (getArgs)
 import System.IO (IOMode (WriteMode), withFile)
 
 import Color (Color)
-import Hit (defaultInterval, hitColor)
+import Hit (defaultInterval, hitColor, hitMany)
 import Image (Image (Image), writeImage)
 import Point (point, (.+^), (.-.), (.-^))
 import Ray (Ray (Ray))
@@ -45,6 +45,11 @@ createImage = Image imageWidth imageHeight colors
 
   pixel00Location = viewportUpperLeft .+^ (0.5 * pixelDeltaU) .+^ (0.5 * pixelDeltaV)
 
+  world =
+    [ Sphere (point 0 0 (-1)) 0.5
+    , Sphere (point 0 (-100.5) (-1)) 100
+    ]
+
   colors =
     [ [ color i j
       | i <- [(0 :: Int) .. imageWidth - 1]
@@ -52,10 +57,8 @@ createImage = Image imageWidth imageHeight colors
     | j <- [(0 :: Int) .. imageHeight - 1]
     ]
 
-  sphere = Sphere (point 0 0 (-1)) 0.5
-
   color :: Int -> Int -> Color
-  color i j = hitColor sphere ray defaultInterval
+  color i j = hitColor ray hitRecord
    where
     pixelCenter =
       pixel00Location
@@ -63,3 +66,4 @@ createImage = Image imageWidth imageHeight colors
         .+^ (pixelDeltaV * fromIntegral j)
     rayDirection = pixelCenter .-. cameraCenter
     ray = Ray cameraCenter rayDirection
+    hitRecord = hitMany world ray defaultInterval

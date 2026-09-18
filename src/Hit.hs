@@ -2,9 +2,13 @@ module Hit (
   Hittable (outwardNormalVec, hitDistance),
   Interval,
   defaultInterval,
+  hitMany,
   hitColor,
   inInterval,
 ) where
+
+import Data.Maybe (mapMaybe)
+import Safe (minimumMay)
 
 import Color (Color (C))
 import Point (Point)
@@ -15,9 +19,13 @@ import Vec3 (Vec3 (V3), dot, unit, (^*))
 data HitRecord
   = HitRecord
       Point -- origin
+      RayDistance -- distance with the ray
       -- TODO: implement of normal vector
       (Vec3 Double) -- normal vector
   deriving (Show, Eq)
+
+instance Ord HitRecord where
+  compare (HitRecord _ dist1 _) (HitRecord _ dist2 _) = compare dist1 dist2
 
 data Interval
   = Interval
@@ -25,7 +33,7 @@ data Interval
       Double -- max
 
 defaultInterval :: Interval
-defaultInterval = Interval (-(1 / 0)) (1 / 0)
+defaultInterval = Interval 0 (1 / 0)
 
 -- | Whether an interval contains value
 --
@@ -58,12 +66,22 @@ class Hittable a where
           if (outwardNormal `dot` direction) > 0.0
             then -outwardNormal -- ray is inside
             else outwardNormal -- ray is outside
-    return (HitRecord hitPoint normalVec)
+    return (HitRecord hitPoint rayDistance normalVec)
 
-hitColor :: (Hittable o) => o -> Ray -> Interval -> Color
-hitColor object ray@(Ray _ direction) interval = case hit object ray interval of
-  Just (HitRecord _ normalVec) -> C ((normalVec + 1) * 0.5)
-  Nothing -> C (V3 1 1 1 ^* (1 - a) + V3 0.5 0.7 1.0 ^* a)
+-- | Given many objects, we want to find the closest hit record
+hitMany :: (Hittable o) => [o] -> Ray -> Interval -> Maybe HitRecord
+hitMany objects ray interval = minimumMay hitRecords
+ where
+  hitRecords = mapMaybe (\object -> hit object ray interval) objects
+
+-- | Background default color
+defaultColor :: Ray -> Color
+defaultColor (Ray _ direction) = C (V3 1 1 1 ^* (1 - a) + V3 0.5 0.7 1.0 ^* a)
  where
   V3 _ y _ = unit direction
   a = 0.5 * (y + 1.0)
+
+-- | Color from a hit record
+hitColor :: Ray -> Maybe HitRecord -> Color
+hitColor ray Nothing = defaultColor ray
+hitColor _ (Just (HitRecord _ _ normalVec)) = C ((normalVec + 1) * 0.5)
