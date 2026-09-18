@@ -74,7 +74,8 @@ library
     build-depends:
       base ^>=4.20.2.0,
       safe,
-      terminal-progress-bar
+      terminal-progress-bar,
+      MonadRandom
 
     -- Directories containing source files.
     hs-source-dirs:   src

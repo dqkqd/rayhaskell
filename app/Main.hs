@@ -4,7 +4,12 @@ import System.Environment (getArgs)
 import System.IO (IOMode (WriteMode), withFile)
 
 import Camera (
-  CameraConfig (CameraConfig, imageWidthConfig, ratioConfig),
+  CameraConfig (
+    CameraConfig,
+    imageWidthConfig,
+    ratioConfig,
+    samplesPerPixelConfig
+  ),
   createCamera,
   render,
  )
@@ -22,7 +27,8 @@ main = do
       cameraConfig =
         CameraConfig
           { ratioConfig = 16.0 / 9.0
-          , imageWidthConfig = 800
+          , imageWidthConfig = 400
+          , samplesPerPixelConfig = 100
           }
       camera = createCamera cameraConfig
       world =

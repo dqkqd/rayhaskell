@@ -4,7 +4,15 @@ import Interval (Interval (Interval), intervalClamp)
 import Vec3 (Vec3 (V3), mkVec3)
 
 -- | The internal color, in space [0 - 1]
-newtype Color = C (Vec3 Double) deriving (Eq)
+--
+-- Its internal is Vec3 Double
+--
+-- >>> (color 0.25 0.5 0.75 + color 0.25 0.25 0.25) == color 0.50 0.75 1.0
+-- True
+--
+-- >>> (color 0.25 0.5 0.0) * 2 == color 0.50 1.0 1.0
+-- True
+newtype Color = C (Vec3 Double) deriving (Eq, Num, Fractional)
 
 -- | Color constructor
 color :: Double -> Double -> Double -> Color
