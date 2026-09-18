@@ -1,16 +1,14 @@
 module Hit (
   Hittable (outwardNormalVec, hitDistance),
-  Interval,
-  defaultInterval,
   hitMany,
   hitColor,
-  inInterval,
 ) where
 
 import Data.Maybe (mapMaybe)
 import Safe (minimumMay)
 
 import Color (Color (C))
+import Interval (Interval)
 import Point (Point)
 import Ray (Ray (Ray), RayDistance, rayAt)
 import Vec3 (Vec3 (V3), dot, unit, (^*))
@@ -26,27 +24,6 @@ data HitRecord
 
 instance Ord HitRecord where
   compare (HitRecord _ dist1 _) (HitRecord _ dist2 _) = compare dist1 dist2
-
-data Interval
-  = Interval
-      Double -- min
-      Double -- max
-
-defaultInterval :: Interval
-defaultInterval = Interval 0 (1 / 0)
-
--- | Whether an interval contains value
---
--- >>> inInterval (Interval 1 10) 5
--- True
---
--- >>> inInterval (Interval 1 10) 12
--- False
---
--- >>> inInterval (Interval 1 10) 0
--- False
-inInterval :: Interval -> Double -> Bool
-inInterval (Interval minV maxV) value = value >= minV && value <= maxV
 
 -- | Hittable interface, whether an object can be _hit_ by a ray.
 class Hittable a where

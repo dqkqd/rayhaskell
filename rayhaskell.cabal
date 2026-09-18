@@ -54,13 +54,14 @@ library
 
     -- Modules exported by the library.
     exposed-modules:
-      Image
-      Vec3
       Color
-      Ray
-      Point
-      Sphere
       Hit
+      Image
+      Interval
+      Point
+      Ray
+      Sphere
+      Vec3
 
     -- Modules included in this library but not exported.
     -- other-modules:

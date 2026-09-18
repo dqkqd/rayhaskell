@@ -2,10 +2,9 @@ module Sphere (Sphere (Sphere)) where
 
 import Control.Monad (guard)
 import Data.List (find)
-import Hit (
-  Hittable (hitDistance, outwardNormalVec),
-  inInterval,
- )
+
+import Hit (Hittable (hitDistance, outwardNormalVec))
+import Interval (inInterval)
 import Point (Point, (.-.))
 import Ray (Ray (Ray), RayDistance (RayDistance))
 import Vec3 (dot, unit)
