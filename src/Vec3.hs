@@ -42,7 +42,7 @@ instance (Fractional a) => Fractional (Vec3 a) where
 
 -- | Mutiply a scalar with Vec3
 --
--- >>> (V3 1 2 3) *^ 5
+-- >>> (V3 1 2 3) ^* 5
 -- V3 5 10 15
 (^*) :: (Num a) => Vec3 a -> a -> Vec3 a
 (^*) = flip (*^)

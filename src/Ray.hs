@@ -21,7 +21,7 @@ newtype RayDistance = RayDistance Double
 -- | Where this ray is pointing to with a scaled direction
 --
 -- >>> ray = Ray (point 1 2 3) (V3 4 5 6)
--- >>> rayAt ray (RayD 2)
+-- >>> rayAt ray (RayDistance 2)
 -- P (V3 9.0 12.0 15.0)
 rayAt ::
   Ray ->
