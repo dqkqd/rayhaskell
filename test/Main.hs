@@ -1,4 +1,7 @@
-module Main (main) where
+import Test.Hspec (hspec)
+
+import TestSphere qualified
 
 main :: IO ()
-main = putStrLn "Test suite not yet implemented."
+main = hspec $ do
+  TestSphere.spec

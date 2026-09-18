@@ -1,6 +1,7 @@
 module Vec3 (
   Vec3 (V3),
-  lengthV,
+  mkVec3,
+  lengthSquare,
   (*^),
   (^*),
   (^/),
@@ -9,7 +10,11 @@ module Vec3 (
   unit,
 ) where
 
-data Vec3 a = V3 a a a deriving (Functor, Eq)
+-- | Generic vector
+data Vec3 a = V3 a a a deriving (Functor, Show, Eq)
+
+mkVec3 :: (Vec3 b -> a) -> b -> b -> b -> a
+mkVec3 wrap x y z = wrap (V3 x y z)
 
 instance Applicative Vec3 where
   pure v = V3 v v v
@@ -28,23 +33,40 @@ instance (Fractional a) => Fractional (Vec3 a) where
   fromRational = pure . fromRational
   (/) = liftA2 (/)
 
--- mutiply with scalar
+-- | Mutiply a Vec3 with scalar
+--
+-- >>> (V3 1 2 3) ^* 5
+-- V3 5 10 15
 (*^) :: (Num a) => a -> Vec3 a -> Vec3 a
 (*^) s = fmap (* s)
 
--- mutiply with scalar
+-- | Mutiply a scalar with Vec3
+--
+-- >>> 5 *^ (V3 1 2 3)
+-- V3 5 10 15
 (^*) :: (Num a) => Vec3 a -> a -> Vec3 a
 (^*) = flip (*^)
 
--- devide by scalar
+-- | Mutiply a Vec3 by scalar
+--
+-- >>> (V3 5 10 15) ^/ 5
+-- V3 1.0 2.0 3.0
 (^/) :: (Fractional a) => Vec3 a -> a -> Vec3 a
 (^/) v s = fmap (/ s) v
 
+-- | Dot product between two Vec3
+--
+-- >>> (V3 1 2 3) `dot` (V3 4 5 6)
+-- 32
 dot :: (Num a) => Vec3 a -> Vec3 a -> a
 dot v1 v2 = x + y + z
  where
   V3 x y z = v1 * v2
 
+-- | Cross product between two Vec3
+--
+-- >>> (V3 1 2 3) `cross` (V3 4 5 6)
+-- V3 (-3) 6 (-3)
 cross :: (Num a) => Vec3 a -> Vec3 a -> Vec3 a
 cross (V3 a1 a2 a3) (V3 b1 b2 b3) =
   V3
@@ -52,8 +74,16 @@ cross (V3 a1 a2 a3) (V3 b1 b2 b3) =
     (a3 * b1 - a1 * b3)
     (a1 * b2 - a2 * b1)
 
-lengthV :: (Floating a) => Vec3 a -> a
-lengthV v = sqrt (v `dot` v)
+-- | Length of a Vec3
+--
+-- >>> lengthSquare (V3 2 3 6)
+-- 49.0
+lengthSquare :: (Floating a) => Vec3 a -> a
+lengthSquare v = v `dot` v
 
+-- | Unit vector for Vec3
+--
+-- >>> unit (V3 1 2 2)
+-- V3 0.3333333333333333 0.6666666666666666 0.6666666666666666
 unit :: (Floating a) => Vec3 a -> Vec3 a
-unit v = v ^/ lengthV v
+unit v = v ^/ (sqrt . lengthSquare) v

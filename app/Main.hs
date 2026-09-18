@@ -4,9 +4,9 @@ import System.Environment (getArgs)
 import System.IO (IOMode (WriteMode), withFile)
 
 import Color (Color)
-import Hit (hitColor)
+import Hit (defaultInterval, hitColor)
 import Image (Image (Image), writeImage)
-import Point (Point (P), (.+^), (.-.), (.-^))
+import Point (point, (.+^), (.-.), (.-^))
 import Ray (Ray (Ray))
 import Sphere (Sphere (Sphere))
 import Vec3 (Vec3 (V3))
@@ -29,7 +29,7 @@ createImage = Image imageWidth imageHeight colors
   focalLength :: Double = 1.0
   viewportHeight :: Double = 2.0
   viewportWidth = viewportHeight * (fromIntegral imageWidth / fromIntegral imageHeight)
-  cameraCenter = P (V3 0 0 0)
+  cameraCenter = point 0 0 0
 
   viewportU = V3 viewportWidth 0 0
   viewportV = V3 0 (-viewportHeight) 0
@@ -52,10 +52,10 @@ createImage = Image imageWidth imageHeight colors
     | j <- [(0 :: Int) .. imageHeight - 1]
     ]
 
-  sphere = Sphere (P (V3 0 0 (-1))) 0.5
+  sphere = Sphere (point 0 0 (-1)) 0.5
 
   color :: Int -> Int -> Color
-  color i j = hitColor ray sphere
+  color i j = hitColor sphere ray defaultInterval
    where
     pixelCenter =
       pixel00Location
