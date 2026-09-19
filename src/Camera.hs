@@ -140,7 +140,7 @@ rayColor ::
 rayColor 0 _ _ = return black
 rayColor depth objects ray = do
   let
-    record = hitMany objects ray defaultInterval
+    record = hitMany objects ray (Interval 0.001 (1 / 0))
     color = case record of
       Just h -> do
         nextDirection <- randomOnHemisphere (hitRecordNormalVec h)
