@@ -12,6 +12,7 @@ module Vec3 (
   randomVecR,
   randomUnitVec,
   nearZero,
+  reflect,
 ) where
 
 import Control.Monad.Random (
@@ -124,3 +125,12 @@ randomUnitVec = do
 -- | Check if a vector is closed to zero
 nearZero :: Vec3 Double -> Bool
 nearZero = all (< 1e-8)
+
+-- | Reflect a vector
+-- This is basically v - 2 b
+reflect ::
+  Vec3 Double -> -- in direction
+  Vec3 Double -> -- normal vector
+  Vec3 Double
+reflect rayIn normal =
+  rayIn - normal * 2 ^* (rayIn `dot` normal)

@@ -14,7 +14,8 @@ import Camera (
   createCamera,
   render,
  )
-import Material.Material (Material (Lambertian))
+import Color (color)
+import Material.Material (Material (Lambertian, Metal))
 import Point (point)
 import Sphere (Sphere (Sphere, sphereCenter, sphereMaterial, sphereRadius))
 import World (WorldObject (S))
@@ -34,19 +35,39 @@ main = do
           , maxDepthConfig = 50
           }
       camera = createCamera cameraConfig
+
+      materialGround = Lambertian (color 0.8 0.8 0)
+      materialCenter = Lambertian (color 0.1 0.2 0.5)
+      materialLeft = Metal (color 0.8 0.8 0.8)
+      materialRight = Metal (color 0.8 0.6 0.2)
+
       world =
         [ S
             ( Sphere
-                { sphereCenter = point 0 0 (-1)
-                , sphereRadius = 0.5
-                , sphereMaterial = Lambertian 0
+                { sphereCenter = point 0 (-100.5) (-1)
+                , sphereRadius = 100
+                , sphereMaterial = materialGround
                 }
             )
         , S
             ( Sphere
-                { sphereCenter = point 0 (-100.5) (-1)
-                , sphereRadius = 100
-                , sphereMaterial = Lambertian 0
+                { sphereCenter = point 0 0 (-1.2)
+                , sphereRadius = 0.5
+                , sphereMaterial = materialCenter
+                }
+            )
+        , S
+            ( Sphere
+                { sphereCenter = point (-1.0) 0 (-1.0)
+                , sphereRadius = 0.5
+                , sphereMaterial = materialLeft
+                }
+            )
+        , S
+            ( Sphere
+                { sphereCenter = point 1.0 0 (-1.0)
+                , sphereRadius = 0.5
+                , sphereMaterial = materialRight
                 }
             )
         ]

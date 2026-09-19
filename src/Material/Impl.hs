@@ -1,23 +1,25 @@
 module Material.Impl (materialScatter) where
 
 import Control.Monad.Random (Rand, StdGen)
-import Hit.HitRecord (HitRecord (hitMaterial, hitNormalVec, hitPoint))
+import Hit.HitRecord (HitRecord (hitMaterial, hitNormalVec, hitPoint, hitRay))
 import Material.Material (
   Material (Lambertian, Metal),
-  Scatter (Scatter, scatterColor, scatterRay),
+  Scatter (Scatter, scatterAttenuation, scatterRay),
  )
 import Ray (Ray (Ray, rayDirection, rayOrigin))
-import Vec3 (nearZero, randomUnitVec)
+import Vec3 (nearZero, randomUnitVec, reflect)
 
 materialScatter ::
   HitRecord -> -- the current hit record
   Rand StdGen Scatter
 materialScatter hit = materialScatter' (hitMaterial hit) hit
 
+-- | Material scatter implementation for different material
 materialScatter' ::
   Material -> -- the material
   HitRecord -> -- the current hit record
   Rand StdGen Scatter
+-- Lambertian
 materialScatter' (Lambertian albedo) hit = do
   unitVec <- randomUnitVec
   let
@@ -28,7 +30,15 @@ materialScatter' (Lambertian albedo) hit = do
         else direction
   return
     Scatter
-      { scatterColor = albedo
+      { scatterAttenuation = albedo
       , scatterRay = Ray{rayOrigin = hitPoint hit, rayDirection = scatterDirection}
       }
-materialScatter' (Metal _) _ = undefined
+
+-- Metal
+materialScatter' (Metal albedo) hit = do
+  let scatterDirection = reflect (rayDirection (hitRay hit)) (hitNormalVec hit)
+  return
+    Scatter
+      { scatterAttenuation = albedo
+      , scatterRay = Ray{rayOrigin = hitPoint hit, rayDirection = scatterDirection}
+      }

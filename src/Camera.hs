@@ -22,7 +22,7 @@ import Color (Color (C), black)
 import Hit.Hittable (hitMany)
 import Interval (Interval (Interval))
 import Material.Impl (materialScatter)
-import Material.Material (Scatter (scatterRay))
+import Material.Material (Scatter (scatterAttenuation, scatterRay))
 import Point (Point, point, (.+^), (.-.), (.-^))
 import Ray (Ray (Ray, rayDirection, rayOrigin))
 import System.IO (Handle, hPrint, hPutStrLn)
@@ -144,7 +144,7 @@ rayColor depth objects ray = do
       Just h -> do
         scatter <- materialScatter h
         nextColor <- rayColor (depth - 1) objects (scatterRay scatter)
-        return (nextColor * 0.5)
+        return (nextColor * scatterAttenuation scatter)
       Nothing -> return (backgroundColor ray)
 
   color

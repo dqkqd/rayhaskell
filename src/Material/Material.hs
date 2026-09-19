@@ -1,4 +1,7 @@
-module Material.Material (Material (Lambertian, Metal), Scatter (Scatter, scatterColor, scatterRay)) where
+module Material.Material (
+  Material (Lambertian, Metal),
+  Scatter (Scatter, scatterAttenuation, scatterRay),
+) where
 
 import Color (Color)
 import Ray (Ray)
@@ -11,6 +14,6 @@ data Material
   deriving (Show)
 
 data Scatter = Scatter
-  { scatterColor :: Color
+  { scatterAttenuation :: Color
   , scatterRay :: Ray
   }
