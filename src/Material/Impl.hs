@@ -63,8 +63,18 @@ materialScatter' (Dielectric refactionIndex) hit = do
       if hitFrontFace hit
         then 1.0 / refactionIndex
         else refactionIndex
+
+    unitDirection = unit $ rayDirection $ hitRay hit
+    cosTheta = min 1.0 (unitDirection `dot` hitNormalVec hit)
+    sinTheta = sqrt (1 - cosTheta * cosTheta)
+
+    cannotRefract = etaRatio * sinTheta > 1.0
+
     scatterDirection =
-      refract (unit $ rayDirection $ hitRay hit) (hitNormalVec hit) etaRatio
+      if cannotRefract
+        then reflect unitDirection (hitNormalVec hit)
+        else refract unitDirection (hitNormalVec hit) etaRatio
+
   return $
     Just $
       Scatter
