@@ -50,11 +50,11 @@ main = do
           , samplesPerPixelConfig = 100
           , maxDepthConfig = 50
           , fieldOfViewConfig = 20
-          , lookFromConfig = point (-2) 2 1
-          , lookAtConfig = point 0 0 (-1)
+          , lookFromConfig = point 13 2 3
+          , lookAtConfig = point 0 0 0
           , viewUpConfig = V3 0 1 0
-          , defocusAngleConfig = 10
-          , focusDistConfig = 3.4
+          , defocusAngleConfig = 0.6
+          , focusDistConfig = 10.0
           }
       camera = createCamera cameraConfig
 
