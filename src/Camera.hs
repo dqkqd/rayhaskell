@@ -5,7 +5,8 @@ module Camera (
     ratioConfig,
     imageWidthConfig,
     samplesPerPixelConfig,
-    maxDepthConfig
+    maxDepthConfig,
+    fieldOfViewConfig
   ),
   createCamera,
 ) where
@@ -36,6 +37,7 @@ data CameraConfig = CameraConfig
   , imageWidthConfig :: Int
   , samplesPerPixelConfig :: Int
   , maxDepthConfig :: Int
+  , fieldOfViewConfig :: Double
   }
 
 -- | Actual camera, this can only be created from a configuration
@@ -45,6 +47,7 @@ data Camera = Camera
   , center :: Point
   , samplesPerPixel :: Int
   , maxDepth :: Int
+  , fieldOfView :: Double
   , pixel00Location :: Point
   , pixelDeltaU :: Vec3 Double
   , pixelDeltaV :: Vec3 Double
@@ -58,6 +61,7 @@ createCamera
     , imageWidthConfig = imageWidth
     , samplesPerPixelConfig = samplesPerPixel
     , maxDepthConfig = maxDepth
+    , fieldOfViewConfig = fieldOfView
     } =
     Camera
       { imageWidth = imageWidth
@@ -68,12 +72,15 @@ createCamera
       , pixel00Location = pixel00Location
       , pixelDeltaU = pixelDeltaU
       , pixelDeltaV = pixelDeltaV
+      , fieldOfView = fieldOfView
       }
    where
     imageHeight = floor (fromIntegral imageWidth / ratio)
 
-    focalLength :: Double = 1.0
-    viewportHeight :: Double = 2.0
+    focalLength = 1.0
+    theta = pi / 180 * fieldOfView
+    h = tan (theta / 2)
+    viewportHeight = 2 * h * focalLength
     viewportWidth = viewportHeight * (fromIntegral imageWidth / fromIntegral imageHeight)
     cameraCenter = point 0 0 0
 

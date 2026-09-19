@@ -6,6 +6,7 @@ import System.IO (IOMode (WriteMode), withFile)
 import Camera (
   CameraConfig (
     CameraConfig,
+    fieldOfViewConfig,
     imageWidthConfig,
     maxDepthConfig,
     ratioConfig,
@@ -15,7 +16,7 @@ import Camera (
   render,
  )
 import Color (color)
-import Material.Material (Material (Dielectric, Lambertian, Metal))
+import Material.Material (Material (Lambertian))
 import Point (point)
 import Sphere (Sphere (Sphere, sphereCenter, sphereMaterial, sphereRadius))
 import World (WorldObject (S))
@@ -33,48 +34,27 @@ main = do
           , imageWidthConfig = 400
           , samplesPerPixelConfig = 100
           , maxDepthConfig = 50
+          , fieldOfViewConfig = 90
           }
       camera = createCamera cameraConfig
 
-      materialGround = Lambertian (color 0.8 0.8 0)
-      materialCenter = Lambertian (color 0.1 0.2 0.5)
-      materialLeft = Dielectric 1.5
-      materialBubble = Dielectric (1 / 1.5)
-      materialRight = Metal (color 0.8 0.6 0.2) 1.0
+      materialLeft = Lambertian (color 0 0 1)
+      materialRight = Lambertian (color 1 0 0)
+
+      r = cos (pi / 4)
 
       world =
         [ S
             ( Sphere
-                { sphereCenter = point 0 (-100.5) (-1)
-                , sphereRadius = 100
-                , sphereMaterial = materialGround
-                }
-            )
-        , S
-            ( Sphere
-                { sphereCenter = point 0 0 (-1.2)
-                , sphereRadius = 0.5
-                , sphereMaterial = materialCenter
-                }
-            )
-        , S
-            ( Sphere
-                { sphereCenter = point (-1.0) 0 (-1.0)
-                , sphereRadius = 0.5
+                { sphereCenter = point (-r) 0 (-1)
+                , sphereRadius = r
                 , sphereMaterial = materialLeft
                 }
             )
         , S
             ( Sphere
-                { sphereCenter = point (-1.0) 0 (-1.0)
-                , sphereRadius = 0.4
-                , sphereMaterial = materialBubble
-                }
-            )
-        , S
-            ( Sphere
-                { sphereCenter = point 1.0 0 (-1.0)
-                , sphereRadius = 0.5
+                { sphereCenter = point r 0 (-1)
+                , sphereRadius = r
                 , sphereMaterial = materialRight
                 }
             )
