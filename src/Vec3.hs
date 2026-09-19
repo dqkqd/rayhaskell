@@ -1,3 +1,6 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE StandaloneDeriving #-}
+
 module Vec3 (
   Vec3 (V3),
   mkVec3,
@@ -22,10 +25,15 @@ import Control.Monad.Random (
   Rand,
   StdGen,
  )
+import Control.Parallel.Strategies (NFData)
+import GHC.Generics (Generic)
+
 import Interval (Interval (Interval))
 
 -- | Generic vector
-data Vec3 a = V3 a a a deriving (Functor, Foldable, Eq, Show)
+data Vec3 a = V3 a a a deriving (Functor, Foldable, Eq, Show, Generic)
+
+deriving instance (NFData a) => NFData (Vec3 a)
 
 mkVec3 :: (Vec3 b -> a) -> b -> b -> b -> a
 mkVec3 wrap x y z = wrap (V3 x y z)

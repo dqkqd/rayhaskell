@@ -3,7 +3,6 @@ module Hit.Hittable (
   hitMany,
 ) where
 
-import Data.Maybe (mapMaybe)
 import Safe (minimumByMay)
 
 import Data.Ord (comparing)
@@ -34,18 +33,18 @@ class Hittable a where
 
   material :: a -> Material
 
--- | Calculate the hit record
-hitSingle :: (Hittable a) => a -> Ray -> Interval -> Maybe HitRecord
-hitSingle object ray interval = do
-  rayDistance <- distance object ray interval
-  let hitPoint = rayAt ray rayDistance
-      outwardNormal = outwardNormalVec object hitPoint
-      frontFace = (outwardNormal `dot` rayDirection ray) < 0.0
-      normalVec =
-        if frontFace
-          then outwardNormal -- ray it outside
-          else -outwardNormal -- ray is inside
-  return
+-- | Compute the hit record at a distance
+hitRecordAt :: (Hittable a) => a -> Ray -> RayDistance -> HitRecord
+hitRecordAt object ray rayDistance =
+  let
+    hitPoint = rayAt ray rayDistance
+    outwardNormal = outwardNormalVec object hitPoint
+    frontFace = (outwardNormal `dot` rayDirection ray) < 0.0
+    normalVec =
+      if frontFace
+        then outwardNormal -- ray it outside
+        else -outwardNormal -- ray is inside
+   in
     HitRecord
       { hitPoint = hitPoint
       , hitRay = ray
@@ -57,7 +56,7 @@ hitSingle object ray interval = do
 
 -- | Given many objects, we want to find the closest hit record
 hitMany :: (Hittable o) => [o] -> Ray -> Interval -> Maybe HitRecord
-hitMany objects ray interval =
-  minimumByMay (comparing hitDistance) hitRecords
- where
-  hitRecords = mapMaybe (\object -> hitSingle object ray interval) objects
+hitMany objects ray interval = do
+  let distances = [(o, d) | o <- objects, Just d <- [distance o ray interval]]
+  (object, minDistance) <- minimumByMay (comparing snd) distances
+  return $ hitRecordAt object ray minDistance

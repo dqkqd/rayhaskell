@@ -1,7 +1,6 @@
 module Sphere (Sphere (Sphere, sphereCenter, sphereRadius, sphereMaterial)) where
 
 import Control.Monad (guard)
-import Data.List (find)
 
 import Hit.Hittable (Hittable (distance, material, outwardNormalVec))
 import Interval (intervalSurrounds)
@@ -24,17 +23,26 @@ instance Hittable Sphere where
     Sphere{sphereCenter = sphereCenter, sphereRadius = sphereRadius}
     Ray{rayOrigin = rayOrigin, rayDirection = rayDirection}
     interval = do
-      let a = rayDirection `dot` rayDirection
-          b = rayDirection `dot` (sphereCenter .-. rayOrigin)
-          c =
-            (sphereCenter .-. rayOrigin) `dot` (sphereCenter .-. rayOrigin)
-              - sphereRadius * sphereRadius
-          delta = b * b - a * c
+      let
+        oc = sphereCenter .-. rayOrigin
+        a = rayDirection `dot` rayDirection
+        b = rayDirection `dot` oc
+        c = oc `dot` oc - sphereRadius * sphereRadius
+        delta = b * b - a * c
 
       guard (delta >= 0)
-      let sqrtD = sqrt delta
-      root <- find (intervalSurrounds interval) [(b - sqrtD) / a, (b + sqrtD) / a]
-      return (RayDistance root)
+      let
+        sqrtD = sqrt delta
+        r1 = (b - sqrtD) / a
+        r2 = (b + sqrtD) / a
+
+      if intervalSurrounds interval r1
+        then return $ RayDistance r1
+        else
+          if intervalSurrounds interval r2
+            then return $ RayDistance r2
+            else
+              Nothing
 
   outwardNormalVec s p = unit (p .-. sphereCenter s)
 

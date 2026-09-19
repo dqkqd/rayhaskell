@@ -1,5 +1,6 @@
 module Color (Color (C), color, black) where
 
+import Control.Parallel.Strategies (NFData)
 import Interval (Interval (Interval), intervalClamp)
 import Vec3 (Vec3 (V3), mkVec3)
 
@@ -12,7 +13,7 @@ import Vec3 (Vec3 (V3), mkVec3)
 --
 -- >>> (color 0.25 0.5 0.0) * 2 == color 0.50 1.0 1.0
 -- True
-newtype Color = C (Vec3 Double) deriving (Eq, Num, Fractional)
+newtype Color = C (Vec3 Double) deriving (Eq, Num, Fractional, NFData)
 
 -- | Color constructor
 color :: Double -> Double -> Double -> Color

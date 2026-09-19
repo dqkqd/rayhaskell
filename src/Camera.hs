@@ -16,15 +16,17 @@ module Camera (
   createCamera,
 ) where
 
-import Control.Monad (forM_, replicateM)
+import Control.Monad (forM, forM_, replicateM)
 import Control.Monad.Random (
   Rand,
   StdGen,
-  evalRandIO,
+  evalRand,
+  newStdGen,
  )
 import System.ProgressBar
 
 import Color (Color (C), black)
+import Control.Parallel.Strategies (parListChunk, rdeepseq, using)
 import Hit.Hittable (hitMany)
 import Interval (Interval (Interval))
 import Material.Impl (materialScatter)
@@ -36,7 +38,6 @@ import Text.Printf (hPrintf)
 import Vec3 (
   Vec3 (V3),
   cross,
-  lengthSquare,
   randomInUnitDisk,
   randomVecR,
   unit,
@@ -144,8 +145,6 @@ render
   camera@( Camera
              { imageWidth = imageWidth
              , imageHeight = imageHeight
-             , samplesPerPixel = samplesPerPixel
-             , maxDepth = maxDepth
              }
            )
   world
@@ -155,16 +154,33 @@ render
     hPutStrLn h "255"
 
     pb <- newProgressBar defStyle 10 (Progress 0 imageHeight ())
-    forM_ [0 .. imageHeight - 1] $ \j -> do
+    rowSeeds <- forM [0 .. imageHeight - 1] (const newStdGen)
+    let rows =
+          [ evalRand (renderRow camera world j) seed
+          | (j, seed) <- zip [0 ..] rowSeeds
+          ]
+            `using` parListChunk 8 rdeepseq
+
+    forM_ rows $ \row -> do
       incProgress pb 1
-      forM_ [0 .. imageWidth - 1] $ \i -> do
-        colors <-
-          evalRandIO $
-            replicateM samplesPerPixel $ do
-              ray <- sampleRay camera i j
-              rayColor maxDepth world ray
-        let averageColor = sum colors / fromIntegral (length colors)
-        hPrint h averageColor
+      forM_ row $ \c -> do
+        hPrint h c
+
+-- | Generate row in parallel
+renderRow ::
+  Camera ->
+  [WorldObject] ->
+  Int ->
+  Rand StdGen [Color]
+renderRow camera objects j = mapM pixel [0 .. imageWidth camera - 1]
+ where
+  pixel i = do
+    colors <-
+      replicateM (samplesPerPixel camera) $ do
+        ray <- sampleRay camera i j
+        rayColor (maxDepth camera) objects ray
+    let averageColor = sum colors / fromIntegral (samplesPerPixel camera)
+    return averageColor
 
 sampleRay :: Camera -> Int -> Int -> Rand StdGen Ray
 sampleRay camera i j = do
