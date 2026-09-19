@@ -19,13 +19,11 @@ import Control.Monad.Random (
 import System.ProgressBar
 
 import Color (Color (C), black)
-import Hit (
-  HitRecord (hitRecordNormalVec, hitRecordOrigin),
-  hitMany,
- )
+import Hit.HitRecord (HitRecord (hitNormalVec, hitPoint))
+import Hit.Hittable (hitMany)
 import Interval (Interval (Interval))
 import Point (Point, point, (.+^), (.-.), (.-^))
-import Ray (Ray (Ray))
+import Ray (Ray (Ray, rayDirection, rayOrigin))
 import System.IO (Handle, hPrint, hPutStrLn)
 import Text.Printf (hPrintf)
 import Vec3 (Vec3 (V3), randomUnitVec, randomVecR, unit, (^*))
@@ -129,7 +127,7 @@ sampleRay camera i j = do
         .+^ (pixelDeltaU camera ^* (x + fromIntegral i))
         .+^ (pixelDeltaV camera ^* (y + fromIntegral j))
     rayDirection = pixelSample .-. center camera
-  return (Ray (center camera) rayDirection)
+  return Ray{rayOrigin = center camera, rayDirection = rayDirection}
 
 -- | Render color from a ray hitting the world
 rayColor ::
@@ -144,7 +142,11 @@ rayColor depth objects ray = do
     color = case record of
       Just h -> do
         unitVec <- randomUnitVec
-        let nextRay = Ray (hitRecordOrigin h) (unitVec + hitRecordNormalVec h)
+        let nextRay =
+              Ray
+                { rayOrigin = hitPoint h
+                , rayDirection = unitVec + hitNormalVec h
+                }
         nextColor <- rayColor (depth - 1) objects nextRay
         return (nextColor * 0.5)
       Nothing -> return (backgroundColor ray)

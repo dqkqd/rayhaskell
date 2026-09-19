@@ -3,7 +3,7 @@ module Sphere (Sphere (Sphere)) where
 import Control.Monad (guard)
 import Data.List (find)
 
-import Hit (Hittable (hitDistance, outwardNormalVec))
+import Hit.Hittable (Hittable (distance, outwardNormalVec))
 import Interval (intervalSurrounds)
 import Point (Point, (.-.))
 import Ray (Ray (Ray), RayDistance (RayDistance))
@@ -17,7 +17,7 @@ data Sphere
 
 -- | A Sphere is a Hittable object
 instance Hittable Sphere where
-  hitDistance (Sphere sCenter sRadius) (Ray rOrigin rDirection) interval = do
+  distance (Sphere sCenter sRadius) (Ray rOrigin rDirection) interval = do
     let a = rDirection `dot` rDirection
         b = rDirection `dot` (sCenter .-. rOrigin)
         c = (sCenter .-. rOrigin) `dot` (sCenter .-. rOrigin) - sRadius * sRadius

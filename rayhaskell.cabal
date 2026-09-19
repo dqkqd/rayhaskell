@@ -56,7 +56,8 @@ library
     exposed-modules:
       Camera
       Color
-      Hit
+      Hit.HitRecord
+      Hit.Hittable
       Interval
       Point
       Ray

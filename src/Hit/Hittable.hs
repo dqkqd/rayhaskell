@@ -1,51 +1,49 @@
-module Hit (
-  Hittable (outwardNormalVec, hitDistance),
-  HitRecord (hitRecordNormalVec, hitRecordOrigin),
+module Hit.Hittable (
+  Hittable (outwardNormalVec, distance),
   hitMany,
 ) where
 
 import Data.Maybe (mapMaybe)
-import Safe (minimumMay)
+import Safe (minimumByMay)
 
+import Data.Ord (comparing)
+import Hit.HitRecord (
+  HitRecord (HitRecord, hitDistance, hitNormalVec, hitPoint, hitRay),
+ )
 import Interval (Interval)
 import Point (Point)
-import Ray (Ray (Ray), RayDistance, rayAt)
+import Ray (Ray (rayDirection), RayDistance, rayAt)
 import Vec3 (Vec3, dot)
-
--- | A hit data structure, contains an origin and a normal vector pointing outward
-data HitRecord
-  = HitRecord
-  { hitRecordOrigin :: Point
-  , hitRecordDistance :: RayDistance
-  , hitRecordNormalVec :: Vec3 Double -- normal vector
-  }
-  deriving (Show, Eq)
-
-instance Ord HitRecord where
-  compare (HitRecord _ dist1 _) (HitRecord _ dist2 _) = compare dist1 dist2
 
 -- | Hittable interface, whether an object can be _hit_ by a ray.
 class Hittable a where
   -- | Calculate the hit distance from a ray
-  hitDistance :: a -> Ray -> Interval -> Maybe RayDistance
+  distance :: a -> Ray -> Interval -> Maybe RayDistance
 
   -- | Calculate the outward normal vector at a given point
   outwardNormalVec :: a -> Point -> Vec3 Double
 
 -- | Calculate the hit record
 hitSingle :: (Hittable a) => a -> Ray -> Interval -> Maybe HitRecord
-hitSingle object ray@(Ray _ direction) interval = do
-  rayDistance <- hitDistance object ray interval
+hitSingle object ray interval = do
+  rayDistance <- distance object ray interval
   let hitPoint = rayAt ray rayDistance
       outwardNormal = outwardNormalVec object hitPoint
       normalVec =
-        if (outwardNormal `dot` direction) > 0.0
+        if (outwardNormal `dot` rayDirection ray) > 0.0
           then -outwardNormal -- ray is inside
           else outwardNormal -- ray is outside
-  return (HitRecord hitPoint rayDistance normalVec)
+  return
+    HitRecord
+      { hitPoint = hitPoint
+      , hitRay = ray
+      , hitDistance = rayDistance
+      , hitNormalVec = normalVec
+      }
 
 -- | Given many objects, we want to find the closest hit record
 hitMany :: (Hittable o) => [o] -> Ray -> Interval -> Maybe HitRecord
-hitMany objects ray interval = minimumMay hitRecords
+hitMany objects ray interval =
+  minimumByMay (comparing hitDistance) hitRecords
  where
   hitRecords = mapMaybe (\object -> hitSingle object ray interval) objects

@@ -1,4 +1,4 @@
-module Ray (Ray (Ray), rayAt, RayDistance (RayDistance)) where
+module Ray (Ray (Ray, rayOrigin, rayDirection), rayAt, RayDistance (RayDistance)) where
 
 import Point (Point, (.+^))
 import Vec3 (Vec3, (^*))
@@ -9,10 +9,10 @@ import Vec3 (Vec3, (^*))
 
 -- | The Ray, it contains an origin and a vector direction
 data Ray
-  = -- TODO: make ray general
-    Ray
-      Point -- origin
-      (Vec3 Double) -- direction
+  = Ray
+  { rayOrigin :: Point -- origin
+  , rayDirection :: Vec3 Double -- direction
+  }
   deriving (Show)
 
 newtype RayDistance = RayDistance Double
