@@ -38,8 +38,8 @@ main = do
 
       materialGround = Lambertian (color 0.8 0.8 0)
       materialCenter = Lambertian (color 0.1 0.2 0.5)
-      materialLeft = Metal (color 0.8 0.8 0.8)
-      materialRight = Metal (color 0.8 0.6 0.2)
+      materialLeft = Metal (color 0.8 0.8 0.8) 0.3
+      materialRight = Metal (color 0.8 0.6 0.2) 1.0
 
       world =
         [ S

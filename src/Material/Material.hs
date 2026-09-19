@@ -11,6 +11,7 @@ data Material
       Color --  albedo
   | Metal
       Color --  albedo
+      Double -- fuzziness
   deriving (Show)
 
 data Scatter = Scatter

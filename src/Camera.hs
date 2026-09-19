@@ -143,8 +143,11 @@ rayColor depth objects ray = do
     color = case record of
       Just h -> do
         scatter <- materialScatter h
-        nextColor <- rayColor (depth - 1) objects (scatterRay scatter)
-        return (nextColor * scatterAttenuation scatter)
+        case scatter of
+          Nothing -> return black
+          Just s -> do
+            nextColor <- rayColor (depth - 1) objects (scatterRay s)
+            return (nextColor * scatterAttenuation s)
       Nothing -> return (backgroundColor ray)
 
   color
