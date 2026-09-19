@@ -38,7 +38,8 @@ main = do
 
       materialGround = Lambertian (color 0.8 0.8 0)
       materialCenter = Lambertian (color 0.1 0.2 0.5)
-      materialLeft = Dielectric (1 / 1.33)
+      materialLeft = Dielectric 1.5
+      materialBubble = Dielectric (1 / 1.5)
       materialRight = Metal (color 0.8 0.6 0.2) 1.0
 
       world =
@@ -61,6 +62,13 @@ main = do
                 { sphereCenter = point (-1.0) 0 (-1.0)
                 , sphereRadius = 0.5
                 , sphereMaterial = materialLeft
+                }
+            )
+        , S
+            ( Sphere
+                { sphereCenter = point (-1.0) 0 (-1.0)
+                , sphereRadius = 0.4
+                , sphereMaterial = materialBubble
                 }
             )
         , S

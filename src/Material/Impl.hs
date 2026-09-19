@@ -1,6 +1,6 @@
 module Material.Impl (materialScatter) where
 
-import Control.Monad.Random (Rand, StdGen)
+import Control.Monad.Random (MonadRandom (getRandom), Rand, StdGen)
 
 import Color (color)
 import Hit.HitRecord (
@@ -58,22 +58,22 @@ materialScatter' (Metal albedo fuzz) hit = do
 
 -- Dielectric
 materialScatter' (Dielectric refactionIndex) hit = do
+  double :: Double <- getRandom
   let
-    etaRatio =
+    ri =
       if hitFrontFace hit
         then 1.0 / refactionIndex
         else refactionIndex
 
     unitDirection = unit $ rayDirection $ hitRay hit
-    cosTheta = min 1.0 (unitDirection `dot` hitNormalVec hit)
+    cosTheta = min 1.0 ((-unitDirection) `dot` hitNormalVec hit)
     sinTheta = sqrt (1 - cosTheta * cosTheta)
 
-    cannotRefract = etaRatio * sinTheta > 1.0
-
+    cannotRefract = ri * sinTheta > 1.0
     scatterDirection =
-      if cannotRefract
+      if cannotRefract || (reflectance cosTheta ri > double)
         then reflect unitDirection (hitNormalVec hit)
-        else refract unitDirection (hitNormalVec hit) etaRatio
+        else refract unitDirection (hitNormalVec hit) ri
 
   return $
     Just $
@@ -81,3 +81,15 @@ materialScatter' (Dielectric refactionIndex) hit = do
         { scatterAttenuation = color 1 1 1
         , scatterRay = Ray{rayOrigin = hitPoint hit, rayDirection = scatterDirection}
         }
+ where
+  -- Schlick's approximation
+  reflectance ::
+    Double -> -- cosine
+    Double -> -- refractionIndex
+    Double
+  reflectance
+    cosine
+    refractionIndex = r + (1 - r) * ((1 - cosine) ^ (5 :: Int))
+     where
+      r0 = (1 - refractionIndex) / (1 + refractionIndex)
+      r = r0 * r0
