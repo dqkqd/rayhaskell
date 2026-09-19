@@ -102,7 +102,8 @@ executable rayhaskell
     -- Other library packages from which modules are imported.
     build-depends:
         base ^>=4.20.2.0,
-        rayhaskell
+        rayhaskell,
+        MonadRandom
 
     -- Directories containing source files.
     hs-source-dirs:   app

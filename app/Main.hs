@@ -20,11 +20,20 @@ import Camera (
   createCamera,
   render,
  )
-import Color (color)
+import Color (Color (C), color)
+import Control.Monad.Random (
+  MonadRandom (getRandom, getRandomR),
+  Rand,
+  StdGen,
+  evalRandIO,
+  forM,
+ )
+import Data.Maybe (catMaybes)
+import Interval (Interval (Interval))
 import Material.Material (Material (Dielectric, Lambertian, Metal))
-import Point (point)
+import Point (point, (.-.))
 import Sphere (Sphere (Sphere, sphereCenter, sphereMaterial, sphereRadius))
-import Vec3 (Vec3 (V3))
+import Vec3 (Vec3 (V3), lengthSquare, randomVec, randomVecR)
 import World (WorldObject (S))
 
 main :: IO ()
@@ -49,48 +58,83 @@ main = do
           }
       camera = createCamera cameraConfig
 
-      materialGround = Lambertian (color 0.8 0.8 0)
-      materialCenter = Lambertian (color 0.1 0.2 0.5)
-      materialLeft = Dielectric 1.5
-      materialBubble = Dielectric (1 / 1.5)
-      materialRight = Metal (color 0.8 0.6 0.2) 1.0
-
-      world =
+      defaultObject =
         [ S
             ( Sphere
-                { sphereCenter = point 0 (-100.5) (-1)
-                , sphereRadius = 100
-                , sphereMaterial = materialGround
+                { sphereCenter = point 0 (-1000) (-1)
+                , sphereRadius = 1000
+                , sphereMaterial = Lambertian (color 0.5 0.5 0.5)
                 }
             )
         , S
             ( Sphere
-                { sphereCenter = point 0 0 (-1.2)
-                , sphereRadius = 0.5
-                , sphereMaterial = materialCenter
+                { sphereCenter = point 0 1 0
+                , sphereRadius = 1.0
+                , sphereMaterial = Dielectric 1.5
                 }
             )
         , S
             ( Sphere
-                { sphereCenter = point (-1.0) 0 (-1.0)
-                , sphereRadius = 0.5
-                , sphereMaterial = materialLeft
+                { sphereCenter = point (-4) 1 0
+                , sphereRadius = 1.0
+                , sphereMaterial = Lambertian (color 0.4 0.2 0.1)
                 }
             )
         , S
             ( Sphere
-                { sphereCenter = point (-1.0) 0 (-1.0)
-                , sphereRadius = 0.4
-                , sphereMaterial = materialBubble
-                }
-            )
-        , S
-            ( Sphere
-                { sphereCenter = point 1.0 0 (-1.0)
-                , sphereRadius = 0.5
-                , sphereMaterial = materialRight
+                { sphereCenter = point 4 1 0
+                , sphereRadius = 1.0
+                , sphereMaterial = Metal (color 0.7 0.6 0.5) 0
                 }
             )
         ]
 
+  randomObjects <-
+    evalRandIO
+      ( forM [(a, b) | a <- [(-11 :: Int) .. 10], b <- [(-11 :: Int) .. 10]] $
+          uncurry randomObject
+      )
+
+  let world = defaultObject ++ catMaybes randomObjects
   withFile output WriteMode $ render camera world
+
+randomObject :: Int -> Int -> Rand StdGen (Maybe WorldObject)
+randomObject a b = do
+  dx <- getRandom
+  dz <- getRandom
+  material <- randomMaterial
+
+  let
+    center = point (fromIntegral a + dx * 0.9) 0.2 (fromIntegral b + 0.9 * dz)
+    sphere =
+      S
+        ( Sphere
+            { sphereCenter = center
+            , sphereRadius = 0.2
+            , sphereMaterial = material
+            }
+        )
+
+  if lengthSquare (center .-. point 4 0.2 0) > 0.9 * 0.9
+    then return $ Just sphere
+    else return Nothing
+
+randomMaterial :: Rand StdGen Material
+randomMaterial = do
+  chooseMat :: Double <- getRandom
+  case () of
+    _
+      | chooseMat < 0.8 -> do
+          -- diffuse
+          c1 <- randomVec
+          c2 <- randomVec
+          let albedo = C (c1 * c2)
+          return $ Lambertian albedo
+      | chooseMat < 0.95 -> do
+          -- metal
+          albedo <- randomVecR (Interval 0.5 1)
+          fuzz <- getRandomR (0, 0.5)
+          return $ Metal (C albedo) fuzz
+      | otherwise ->
+          -- glass
+          return $ Dielectric 1.5
