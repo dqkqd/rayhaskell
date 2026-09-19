@@ -7,7 +7,7 @@ import Material.Material (
   Scatter (Scatter, scatterColor, scatterRay),
  )
 import Ray (Ray (Ray, rayDirection, rayOrigin))
-import Vec3 (randomUnitVec)
+import Vec3 (nearZero, randomUnitVec)
 
 materialScatter ::
   HitRecord -> -- the current hit record
@@ -21,7 +21,11 @@ materialScatter' ::
 materialScatter' (Lambertian albedo) hit = do
   unitVec <- randomUnitVec
   let
-    scatterDirection = unitVec + hitNormalVec hit
+    direction = unitVec + hitNormalVec hit
+    scatterDirection =
+      if nearZero direction
+        then hitNormalVec hit
+        else direction
   return
     Scatter
       { scatterColor = albedo

@@ -11,6 +11,7 @@ module Vec3 (
   randomVec,
   randomVecR,
   randomUnitVec,
+  nearZero,
 ) where
 
 import Control.Monad.Random (
@@ -119,3 +120,7 @@ randomUnitVec = do
           then return (v ^/ sqrt lenS)
           else loop
   loop
+
+-- | Check if a vector is closed to zero
+nearZero :: Vec3 Double -> Bool
+nearZero = all (< 1e-8)
