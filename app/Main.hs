@@ -14,8 +14,9 @@ import Camera (
   createCamera,
   render,
  )
+import Material.Material (Material (Lambertian))
 import Point (point)
-import Sphere (Sphere (Sphere))
+import Sphere (Sphere (Sphere, sphereCenter, sphereMaterial, sphereRadius))
 import World (WorldObject (S))
 
 main :: IO ()
@@ -34,8 +35,20 @@ main = do
           }
       camera = createCamera cameraConfig
       world =
-        [ S (Sphere (point 0 0 (-1)) 0.5)
-        , S (Sphere (point 0 (-100.5) (-1)) 100)
+        [ S
+            ( Sphere
+                { sphereCenter = point 0 0 (-1)
+                , sphereRadius = 0.5
+                , sphereMaterial = Lambertian 0
+                }
+            )
+        , S
+            ( Sphere
+                { sphereCenter = point 0 (-100.5) (-1)
+                , sphereRadius = 100
+                , sphereMaterial = Lambertian 0
+                }
+            )
         ]
 
   withFile output WriteMode $ render camera world

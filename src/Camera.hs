@@ -19,14 +19,15 @@ import Control.Monad.Random (
 import System.ProgressBar
 
 import Color (Color (C), black)
-import Hit.HitRecord (HitRecord (hitNormalVec, hitPoint))
 import Hit.Hittable (hitMany)
 import Interval (Interval (Interval))
+import Material.Impl (materialScatter)
+import Material.Material (Scatter (scatterRay))
 import Point (Point, point, (.+^), (.-.), (.-^))
 import Ray (Ray (Ray, rayDirection, rayOrigin))
 import System.IO (Handle, hPrint, hPutStrLn)
 import Text.Printf (hPrintf)
-import Vec3 (Vec3 (V3), randomUnitVec, randomVecR, unit, (^*))
+import Vec3 (Vec3 (V3), randomVecR, unit, (^*))
 import World (WorldObject)
 
 -- | camera configuration
@@ -141,13 +142,8 @@ rayColor depth objects ray = do
     record = hitMany objects ray (Interval 0.001 (1 / 0))
     color = case record of
       Just h -> do
-        unitVec <- randomUnitVec
-        let nextRay =
-              Ray
-                { rayOrigin = hitPoint h
-                , rayDirection = unitVec + hitNormalVec h
-                }
-        nextColor <- rayColor (depth - 1) objects nextRay
+        scatter <- materialScatter h
+        nextColor <- rayColor (depth - 1) objects (scatterRay scatter)
         return (nextColor * 0.5)
       Nothing -> return (backgroundColor ray)
 

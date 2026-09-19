@@ -1,5 +1,5 @@
 module Hit.Hittable (
-  Hittable (outwardNormalVec, distance),
+  Hittable (outwardNormalVec, distance, material),
   hitMany,
 ) where
 
@@ -8,9 +8,10 @@ import Safe (minimumByMay)
 
 import Data.Ord (comparing)
 import Hit.HitRecord (
-  HitRecord (HitRecord, hitDistance, hitNormalVec, hitPoint, hitRay),
+  HitRecord (HitRecord, hitDistance, hitMaterial, hitNormalVec, hitPoint, hitRay),
  )
 import Interval (Interval)
+import Material.Material (Material)
 import Point (Point)
 import Ray (Ray (rayDirection), RayDistance, rayAt)
 import Vec3 (Vec3, dot)
@@ -22,6 +23,8 @@ class Hittable a where
 
   -- | Calculate the outward normal vector at a given point
   outwardNormalVec :: a -> Point -> Vec3 Double
+
+  material :: a -> Material
 
 -- | Calculate the hit record
 hitSingle :: (Hittable a) => a -> Ray -> Interval -> Maybe HitRecord
@@ -37,6 +40,7 @@ hitSingle object ray interval = do
     HitRecord
       { hitPoint = hitPoint
       , hitRay = ray
+      , hitMaterial = material object
       , hitDistance = rayDistance
       , hitNormalVec = normalVec
       }

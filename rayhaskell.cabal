@@ -59,6 +59,8 @@ library
       Hit.HitRecord
       Hit.Hittable
       Interval
+      Material.Impl
+      Material.Material
       Point
       Ray
       Sphere
