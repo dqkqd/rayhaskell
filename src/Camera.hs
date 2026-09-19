@@ -10,25 +10,25 @@ module Camera (
   createCamera,
 ) where
 
-import System.ProgressBar
-
-import Color (Color (C), black)
 import Control.Monad (forM_, replicateM)
 import Control.Monad.Random (
   Rand,
   StdGen,
   evalRandIO,
  )
+import System.ProgressBar
+
+import Color (Color (C), black)
 import Hit (
   HitRecord (hitRecordNormalVec, hitRecordOrigin),
   hitMany,
  )
-import Interval (Interval (Interval), defaultInterval)
+import Interval (Interval (Interval))
 import Point (Point, point, (.+^), (.-.), (.-^))
 import Ray (Ray (Ray))
 import System.IO (Handle, hPrint, hPutStrLn)
 import Text.Printf (hPrintf)
-import Vec3 (Vec3 (V3), randomOnHemisphere, randomVecR, unit, (^*))
+import Vec3 (Vec3 (V3), randomUnitVec, randomVecR, unit, (^*))
 import World (WorldObject)
 
 -- | camera configuration
@@ -143,8 +143,8 @@ rayColor depth objects ray = do
     record = hitMany objects ray (Interval 0.001 (1 / 0))
     color = case record of
       Just h -> do
-        nextDirection <- randomOnHemisphere (hitRecordNormalVec h)
-        let nextRay = Ray (hitRecordOrigin h) nextDirection
+        unitVec <- randomUnitVec
+        let nextRay = Ray (hitRecordOrigin h) (unitVec + hitRecordNormalVec h)
         nextColor <- rayColor (depth - 1) objects nextRay
         return (nextColor * 0.5)
       Nothing -> return (backgroundColor ray)

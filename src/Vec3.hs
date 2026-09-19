@@ -10,19 +10,14 @@ module Vec3 (
   unit,
   randomVec,
   randomVecR,
-  randomOnHemisphere,
+  randomUnitVec,
 ) where
 
 import Control.Monad.Random (
-  MonadRandom (getRandom, getRandomR, getRandomRs),
+  MonadRandom (getRandom, getRandomR),
   Rand,
-  Random (random),
   StdGen,
-  forever,
-  replicateM,
  )
-import Data.Foldable (find)
-import Data.Maybe (fromJust)
 import Interval (Interval (Interval))
 
 -- | Generic vector
@@ -124,12 +119,3 @@ randomUnitVec = do
           then return (v ^/ sqrt lenS)
           else loop
   loop
-
--- | Random vector on hemisphere
--- The result vector must be in the same direction with the normal vector
-randomOnHemisphere :: Vec3 Double -> Rand StdGen (Vec3 Double)
-randomOnHemisphere normal = do
-  unitVec <- randomUnitVec
-  if unitVec `dot` normal > 0
-    then return unitVec
-    else return (-unitVec)

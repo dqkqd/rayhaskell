@@ -1,6 +1,5 @@
 module Interval (
   Interval (Interval),
-  defaultInterval,
   intervalContains,
   intervalSurrounds,
   intervalClamp,
@@ -10,9 +9,6 @@ data Interval
   = Interval
       Double -- min
       Double -- max
-
-defaultInterval :: Interval
-defaultInterval = Interval 0 (1 / 0)
 
 -- | Whether an interval contains a value
 -- Return true if x in [a, b]
