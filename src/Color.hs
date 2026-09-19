@@ -18,6 +18,10 @@ newtype Color = C (Vec3 Double) deriving (Eq, Num, Fractional)
 color :: Double -> Double -> Double -> Color
 color = mkVec3 C
 
+-- | The black color
+black :: Color
+black = color 0 0 0
+
 -- | The actual printted color in the file, its internal color space is
 -- converted to [0 - 256)
 -- >>> color 0.1 0.2 0.3
@@ -26,8 +30,8 @@ instance Show Color where
   show (C c) = show x ++ " " ++ show y ++ " " ++ show z
    where
     interval = Interval 0.0 0.999
-    (V3 x y z) :: (Vec3 Int) = floor . (* 256) . intervalClamp interval <$> c
+    (V3 x y z) :: (Vec3 Int) = floor . (* 256) . intervalClamp interval . linearToGamma <$> c
 
--- | The black color
-black :: Color
-black = color 0 0 0
+-- | Convert image data from linear to gamma space
+linearToGamma :: Double -> Double
+linearToGamma = sqrt . max 0
