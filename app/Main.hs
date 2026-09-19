@@ -7,6 +7,7 @@ import Camera (
   CameraConfig (
     CameraConfig,
     imageWidthConfig,
+    maxDepthConfig,
     ratioConfig,
     samplesPerPixelConfig
   ),
@@ -29,6 +30,7 @@ main = do
           { ratioConfig = 16.0 / 9.0
           , imageWidthConfig = 400
           , samplesPerPixelConfig = 100
+          , maxDepthConfig = 50
           }
       camera = createCamera cameraConfig
       world =

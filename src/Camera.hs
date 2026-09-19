@@ -4,14 +4,15 @@ module Camera (
     CameraConfig,
     ratioConfig,
     imageWidthConfig,
-    samplesPerPixelConfig
+    samplesPerPixelConfig,
+    maxDepthConfig
   ),
   createCamera,
 ) where
 
 import System.ProgressBar
 
-import Color (Color (C))
+import Color (Color (C), black)
 import Control.Monad (forM_, replicateM)
 import Control.Monad.Random (
   Rand,
@@ -35,6 +36,7 @@ data CameraConfig = CameraConfig
   { ratioConfig :: Double
   , imageWidthConfig :: Int
   , samplesPerPixelConfig :: Int
+  , maxDepthConfig :: Int
   }
 
 -- | Actual camera, this can only be created from a configuration
@@ -43,6 +45,7 @@ data Camera = Camera
   , imageHeight :: Int
   , center :: Point
   , samplesPerPixel :: Int
+  , maxDepth :: Int
   , pixel00Location :: Point
   , pixelDeltaU :: Vec3 Double
   , pixelDeltaV :: Vec3 Double
@@ -55,11 +58,13 @@ createCamera
     { ratioConfig = ratio
     , imageWidthConfig = imageWidth
     , samplesPerPixelConfig = samplesPerPixel
+    , maxDepthConfig = maxDepth
     } =
     Camera
       { imageWidth = imageWidth
       , imageHeight = imageHeight
       , samplesPerPixel = samplesPerPixel
+      , maxDepth = maxDepth
       , center = point 0 0 0
       , pixel00Location = pixel00Location
       , pixelDeltaU = pixelDeltaU
@@ -94,6 +99,7 @@ render
              { imageWidth = imageWidth
              , imageHeight = imageHeight
              , samplesPerPixel = samplesPerPixel
+             , maxDepth = maxDepth
              }
            )
   world
@@ -110,7 +116,7 @@ render
           evalRandIO $
             replicateM samplesPerPixel $ do
               ray <- sampleRay camera i j
-              rayColor world ray
+              rayColor maxDepth world ray
         let averageColor = sum colors / fromIntegral (length colors)
         hPrint h averageColor
 
@@ -126,15 +132,20 @@ sampleRay camera i j = do
   return (Ray (center camera) rayDirection)
 
 -- | Render color from a ray hitting the world
-rayColor :: [WorldObject] -> Ray -> Rand StdGen Color
-rayColor objects ray = do
+rayColor ::
+  Int -> -- the number of remaning depth
+  [WorldObject] ->
+  Ray ->
+  Rand StdGen Color
+rayColor 0 _ _ = return black
+rayColor depth objects ray = do
   let
     record = hitMany objects ray defaultInterval
     color = case record of
       Just h -> do
         nextDirection <- randomOnHemisphere (hitRecordNormalVec h)
         let nextRay = Ray (hitRecordOrigin h) nextDirection
-        nextColor <- rayColor objects nextRay
+        nextColor <- rayColor (depth - 1) objects nextRay
         return (nextColor * 0.5)
       Nothing -> return (backgroundColor ray)
 

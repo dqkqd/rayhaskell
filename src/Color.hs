@@ -1,4 +1,4 @@
-module Color (Color (C), color) where
+module Color (Color (C), color, black) where
 
 import Interval (Interval (Interval), intervalClamp)
 import Vec3 (Vec3 (V3), mkVec3)
@@ -27,3 +27,7 @@ instance Show Color where
    where
     interval = Interval 0.0 0.999
     (V3 x y z) :: (Vec3 Int) = floor . (* 256) . intervalClamp interval <$> c
+
+-- | The black color
+black :: Color
+black = color 0 0 0
