@@ -1,5 +1,5 @@
 module Material.Material (
-  Material (Lambertian, Metal),
+  Material (Lambertian, Metal, Dielectric),
   Scatter (Scatter, scatterAttenuation, scatterRay),
 ) where
 
@@ -12,6 +12,8 @@ data Material
   | Metal
       Color --  albedo
       Double -- fuzziness
+  | Dielectric
+      Double -- reflection index
   deriving (Show)
 
 data Scatter = Scatter

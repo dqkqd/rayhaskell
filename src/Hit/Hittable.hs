@@ -8,7 +8,15 @@ import Safe (minimumByMay)
 
 import Data.Ord (comparing)
 import Hit.HitRecord (
-  HitRecord (HitRecord, hitDistance, hitMaterial, hitNormalVec, hitPoint, hitRay),
+  HitRecord (
+    HitRecord,
+    hitDistance,
+    hitFrontFace,
+    hitMaterial,
+    hitNormalVec,
+    hitPoint,
+    hitRay
+  ),
  )
 import Interval (Interval)
 import Material.Material (Material)
@@ -32,14 +40,16 @@ hitSingle object ray interval = do
   rayDistance <- distance object ray interval
   let hitPoint = rayAt ray rayDistance
       outwardNormal = outwardNormalVec object hitPoint
+      frontFace = (outwardNormal `dot` rayDirection ray) < 0.0
       normalVec =
-        if (outwardNormal `dot` rayDirection ray) > 0.0
-          then -outwardNormal -- ray is inside
-          else outwardNormal -- ray is outside
+        if frontFace
+          then outwardNormal -- ray it outside
+          else -outwardNormal -- ray is inside
   return
     HitRecord
       { hitPoint = hitPoint
       , hitRay = ray
+      , hitFrontFace = frontFace
       , hitMaterial = material object
       , hitDistance = rayDistance
       , hitNormalVec = normalVec

@@ -5,6 +5,7 @@ module Hit.HitRecord (
   hitDistance,
   hitNormalVec,
   hitMaterial,
+  hitFrontFace,
 ) where
 
 import Material.Material (Material)
@@ -17,6 +18,7 @@ data HitRecord
   = HitRecord
   { hitPoint :: Point
   , hitRay :: Ray
+  , hitFrontFace :: Bool
   , hitMaterial :: Material
   , hitDistance :: RayDistance
   , hitNormalVec :: Vec3 Double -- normal vector

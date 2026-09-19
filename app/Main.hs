@@ -15,7 +15,7 @@ import Camera (
   render,
  )
 import Color (color)
-import Material.Material (Material (Lambertian, Metal))
+import Material.Material (Material (Dielectric, Lambertian, Metal))
 import Point (point)
 import Sphere (Sphere (Sphere, sphereCenter, sphereMaterial, sphereRadius))
 import World (WorldObject (S))
@@ -38,7 +38,7 @@ main = do
 
       materialGround = Lambertian (color 0.8 0.8 0)
       materialCenter = Lambertian (color 0.1 0.2 0.5)
-      materialLeft = Metal (color 0.8 0.8 0.8) 0.3
+      materialLeft = Dielectric 1.5
       materialRight = Metal (color 0.8 0.6 0.2) 1.0
 
       world =

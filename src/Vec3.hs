@@ -7,6 +7,7 @@ module Vec3 (
   (^/),
   dot,
   cross,
+  refract,
   unit,
   randomVec,
   randomVecR,
@@ -134,3 +135,14 @@ reflect ::
   Vec3 Double
 reflect rayIn normal =
   rayIn - normal * 2 ^* (rayIn `dot` normal)
+
+refract ::
+  Vec3 Double -> -- in direction
+  Vec3 Double -> -- normal vector
+  Double -> -- eta ratio
+  Vec3 Double
+refract uv n etaRatio = rPerp' + rParallel'
+ where
+  cosTheta = min 1.0 ((-uv) `dot` n)
+  rPerp' = etaRatio *^ (uv + cosTheta *^ n)
+  rParallel' = -(sqrt (1 - lengthSquare rPerp') *^ n)
