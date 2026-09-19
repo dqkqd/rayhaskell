@@ -6,7 +6,10 @@ module Camera (
     imageWidthConfig,
     samplesPerPixelConfig,
     maxDepthConfig,
-    fieldOfViewConfig
+    fieldOfViewConfig,
+    lookFromConfig,
+    lookAtConfig,
+    viewUpConfig
   ),
   createCamera,
 ) where
@@ -24,11 +27,11 @@ import Hit.Hittable (hitMany)
 import Interval (Interval (Interval))
 import Material.Impl (materialScatter)
 import Material.Material (Scatter (scatterAttenuation, scatterRay))
-import Point (Point, point, (.+^), (.-.), (.-^))
+import Point (Point, (.+^), (.-.), (.-^))
 import Ray (Ray (Ray, rayDirection, rayOrigin))
 import System.IO (Handle, hPrint, hPutStrLn)
 import Text.Printf (hPrintf)
-import Vec3 (Vec3 (V3), randomVecR, unit, (^*))
+import Vec3 (Vec3 (V3), cross, lengthSquare, randomVecR, unit, (^*), (^/))
 import World (WorldObject)
 
 -- | camera configuration
@@ -38,6 +41,9 @@ data CameraConfig = CameraConfig
   , samplesPerPixelConfig :: Int
   , maxDepthConfig :: Int
   , fieldOfViewConfig :: Double
+  , lookFromConfig :: Point
+  , lookAtConfig :: Point
+  , viewUpConfig :: Vec3 Double
   }
 
 -- | Actual camera, this can only be created from a configuration
@@ -62,13 +68,16 @@ createCamera
     , samplesPerPixelConfig = samplesPerPixel
     , maxDepthConfig = maxDepth
     , fieldOfViewConfig = fieldOfView
+    , lookFromConfig = lookFrom
+    , lookAtConfig = lookAt
+    , viewUpConfig = viewUp
     } =
     Camera
       { imageWidth = imageWidth
       , imageHeight = imageHeight
       , samplesPerPixel = samplesPerPixel
       , maxDepth = maxDepth
-      , center = point 0 0 0
+      , center = center
       , pixel00Location = pixel00Location
       , pixelDeltaU = pixelDeltaU
       , pixelDeltaV = pixelDeltaV
@@ -77,22 +86,26 @@ createCamera
    where
     imageHeight = floor (fromIntegral imageWidth / ratio)
 
-    focalLength = 1.0
+    focalLength = sqrt $ lengthSquare (lookFrom .-. lookAt)
     theta = pi / 180 * fieldOfView
     h = tan (theta / 2)
     viewportHeight = 2 * h * focalLength
     viewportWidth = viewportHeight * (fromIntegral imageWidth / fromIntegral imageHeight)
-    cameraCenter = point 0 0 0
+    center = lookFrom
 
-    viewportU = V3 viewportWidth 0 0
-    viewportV = V3 0 (-viewportHeight) 0
+    w = unit (lookFrom .-. lookAt)
+    u = unit (viewUp `cross` w)
+    v = w `cross` u
 
-    pixelDeltaU = viewportU / fromIntegral imageWidth
-    pixelDeltaV = viewportV / fromIntegral imageHeight
+    viewportU = u ^* viewportWidth
+    viewportV = (-v) ^* viewportHeight
+
+    pixelDeltaU = viewportU ^/ fromIntegral imageWidth
+    pixelDeltaV = viewportV ^/ fromIntegral imageHeight
 
     viewportUpperLeft =
-      cameraCenter
-        .-^ V3 0 0 focalLength
+      center
+        .-^ (w ^* focalLength)
         .-^ (viewportU / 2)
         .-^ (viewportV / 2)
 
