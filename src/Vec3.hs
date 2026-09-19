@@ -14,6 +14,7 @@ module Vec3 (
   randomUnitVec,
   nearZero,
   reflect,
+  randomInUnitDisk,
 ) where
 
 import Control.Monad.Random (
@@ -120,6 +121,18 @@ randomUnitVec = do
           lenS = lengthSquare v
         if lenS <= 1
           then return (v ^/ sqrt lenS)
+          else loop
+  loop
+
+-- | Random unit disk in camera
+randomInUnitDisk :: Rand StdGen (Vec3 Double)
+randomInUnitDisk = do
+  let loop = do
+        p <- V3 <$> getRandom <*> getRandom <*> pure 0
+        let
+          lenP = lengthSquare p
+        if lenP <= 1
+          then return p
           else loop
   loop
 

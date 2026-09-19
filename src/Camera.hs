@@ -9,7 +9,9 @@ module Camera (
     fieldOfViewConfig,
     lookFromConfig,
     lookAtConfig,
-    viewUpConfig
+    viewUpConfig,
+    defocusAngleConfig,
+    focusDistConfig
   ),
   createCamera,
 ) where
@@ -31,7 +33,16 @@ import Point (Point, (.+^), (.-.), (.-^))
 import Ray (Ray (Ray, rayDirection, rayOrigin))
 import System.IO (Handle, hPrint, hPutStrLn)
 import Text.Printf (hPrintf)
-import Vec3 (Vec3 (V3), cross, lengthSquare, randomVecR, unit, (^*), (^/))
+import Vec3 (
+  Vec3 (V3),
+  cross,
+  lengthSquare,
+  randomInUnitDisk,
+  randomVecR,
+  unit,
+  (^*),
+  (^/),
+ )
 import World (WorldObject)
 
 -- | camera configuration
@@ -44,6 +55,8 @@ data CameraConfig = CameraConfig
   , lookFromConfig :: Point
   , lookAtConfig :: Point
   , viewUpConfig :: Vec3 Double
+  , defocusAngleConfig :: Double
+  , focusDistConfig :: Double
   }
 
 -- | Actual camera, this can only be created from a configuration
@@ -57,6 +70,9 @@ data Camera = Camera
   , pixel00Location :: Point
   , pixelDeltaU :: Vec3 Double
   , pixelDeltaV :: Vec3 Double
+  , defocusAngle :: Double
+  , defocusDiskU :: Vec3 Double
+  , defocusDiskV :: Vec3 Double
   }
 
 -- | Create a camera
@@ -71,6 +87,8 @@ createCamera
     , lookFromConfig = lookFrom
     , lookAtConfig = lookAt
     , viewUpConfig = viewUp
+    , defocusAngleConfig = defocusAngle
+    , focusDistConfig = focusDist
     } =
     Camera
       { imageWidth = imageWidth
@@ -82,14 +100,19 @@ createCamera
       , pixelDeltaU = pixelDeltaU
       , pixelDeltaV = pixelDeltaV
       , fieldOfView = fieldOfView
+      , defocusAngle = defocusAngle
+      , defocusDiskU = defocusDiskU
+      , defocusDiskV = defocusDiskV
       }
    where
+    degreeToRadian :: Double -> Double
+    degreeToRadian = (* (pi / 180))
+
     imageHeight = floor (fromIntegral imageWidth / ratio)
 
-    focalLength = sqrt $ lengthSquare (lookFrom .-. lookAt)
-    theta = pi / 180 * fieldOfView
+    theta = degreeToRadian fieldOfView
     h = tan (theta / 2)
-    viewportHeight = 2 * h * focalLength
+    viewportHeight = 2 * h * focusDist
     viewportWidth = viewportHeight * (fromIntegral imageWidth / fromIntegral imageHeight)
     center = lookFrom
 
@@ -105,11 +128,15 @@ createCamera
 
     viewportUpperLeft =
       center
-        .-^ (w ^* focalLength)
+        .-^ (w ^* focusDist)
         .-^ (viewportU / 2)
         .-^ (viewportV / 2)
 
     pixel00Location = viewportUpperLeft .+^ (0.5 * pixelDeltaU) .+^ (0.5 * pixelDeltaV)
+
+    defocusRadius = focusDist * tan (degreeToRadian (defocusAngle / 2))
+    defocusDiskU = u ^* defocusRadius
+    defocusDiskV = v ^* defocusRadius
 
 -- | Render list of WorldObject into Image
 render :: Camera -> [WorldObject] -> Handle -> IO ()
@@ -142,13 +169,28 @@ render
 sampleRay :: Camera -> Int -> Int -> Rand StdGen Ray
 sampleRay camera i j = do
   V3 x y _ <- randomVecR (Interval (-0.5) 0.5)
+  defocusedAngle <- defocusDiskSample camera
   let
     pixelSample =
       pixel00Location camera
         .+^ (pixelDeltaU camera ^* (x + fromIntegral i))
         .+^ (pixelDeltaV camera ^* (y + fromIntegral j))
-    rayDirection = pixelSample .-. center camera
-  return Ray{rayOrigin = center camera, rayDirection = rayDirection}
+    rayOrigin =
+      if defocusAngle camera <= 0
+        then center camera
+        else defocusedAngle
+    rayDirection = pixelSample .-. rayOrigin
+
+  return Ray{rayOrigin = rayOrigin, rayDirection = rayDirection}
+
+-- | Return a random point in the camera defocus disk
+defocusDiskSample :: Camera -> Rand StdGen Point
+defocusDiskSample camera = do
+  V3 u v _ <- randomInUnitDisk
+  return $
+    center camera
+      .+^ (defocusDiskU camera ^* u)
+      .+^ (defocusDiskV camera ^* v)
 
 -- | Render color from a ray hitting the world
 rayColor ::

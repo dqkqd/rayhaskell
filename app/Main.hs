@@ -6,7 +6,9 @@ import System.IO (IOMode (WriteMode), withFile)
 import Camera (
   CameraConfig (
     CameraConfig,
+    defocusAngleConfig,
     fieldOfViewConfig,
+    focusDistConfig,
     imageWidthConfig,
     lookAtConfig,
     lookFromConfig,
@@ -42,6 +44,8 @@ main = do
           , lookFromConfig = point (-2) 2 1
           , lookAtConfig = point 0 0 (-1)
           , viewUpConfig = V3 0 1 0
+          , defocusAngleConfig = 10
+          , focusDistConfig = 3.4
           }
       camera = createCamera cameraConfig
 
